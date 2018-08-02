@@ -1,7 +1,7 @@
 async function run() {
   console.log('run')
   // load models
-  await faceapi.loadMtcnnModel('sentinel/models/')
+  await faceapi.loadMtcnnModel('models/')
 
   // setup video feed
   const video = document.querySelector('#inputVideo')
