@@ -32,7 +32,7 @@
   async function run() {
     console.log('run')
     // load models
-    await faceapi.loadMtcnnModel('models/mtcnn_model-weights_manifest.json')
+    await faceapi.loadMtcnnModel('/models')
 
     // setup video feed
     const video = document.querySelector('#inputVideo')
@@ -74,8 +74,7 @@
     })
     setTimeout(() => onPlay())
   }
-
-  run()
+  document.addEventListener('DOMContentLoaded', run, false)
 </script>
 </body>
 </html>
