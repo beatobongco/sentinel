@@ -22,9 +22,11 @@
     <video
       autoplay
       muted
+      onPlay="onPlay(this)"
       id="inputVideo"></video>
     <canvas id="overlay"></canvas>
   </div>
+  <button onClick="startDetection()">Detect mah fez</button>
 
 <script src="lib/face-api.js"></script>
 <script src="index.js"></script>
