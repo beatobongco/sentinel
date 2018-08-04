@@ -7,6 +7,10 @@ function startDetection() {
   onPlay(videoEl)
 }
 
+function play() {
+  videoEl.play()
+}
+
 async function run() {
   console.log('run')
   // load models
@@ -22,7 +26,7 @@ async function run() {
 
 }
 
-async function onPlay(videoEl) {
+async function onPlay(isVideo) {
   console.log('onPlay')
 
   if(videoEl.paused || videoEl.ended || !modelLoaded) {
@@ -53,10 +57,13 @@ async function onPlay(videoEl) {
         'hello',
         Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
       )
-      console.log(faceDetection)
-      console.log(faceLandmarks)
+      // console.log(faceDetection)
+      // console.log(faceLandmarks)
     })
-    return
+    // return
+    if (!isVideo) {
+      videoEl.pause()
+    }
   } else {
     console.log('no results')
   }
