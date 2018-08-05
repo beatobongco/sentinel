@@ -15,7 +15,7 @@ const mtcnnParams = {
 
 let modelLoaded = false
 let forwardTimes = []
-let CLASSES = ['beato']
+let CLASSES = ['beato', 'andrew']
 let faceEmbeddings
 
 function updateTimeStats(timeInMs) {
@@ -30,6 +30,10 @@ async function fetchImage(uri) {
 }
 
 async function trainFaceRecognition(classes) {
+  /*
+    In: array of classes
+    Out: array of objects with each class's name and face embedding
+  */
   return Promise.all(classes.map(
     async className => {
       // all this anonymous function does is get face embeddings
@@ -37,13 +41,45 @@ async function trainFaceRecognition(classes) {
       const img = await faceapi.bufferToImage(
         await fetchImage('train/' + className + '.jpg'))
       // 128-D face embedding
-      const descriptor = await faceapi.recognitionNet.computeFaceDescriptor(img)
+      const descriptors = [await faceapi.recognitionNet.computeFaceDescriptor(img)]
       return {
-        className: className,
-        // an array for now so we can have multiple descriptors later
-        descriptors: [descriptor]
+        className,
+        descriptors
       }
     }))
+}
+
+function getBestMatch(descriptorsByClass, queryDescriptor) {
+  /*
+    In:
+      descriptorsByClass: array of objs with className and face
+                          embeddings
+      queryDescriptor: face embeddings of incoming detection
+  */
+  function computeMeanDistance(descriptors) {
+    return faceapi.round(
+      descriptors
+        .map(d => faceapi.euclideanDistance(d, queryDescriptor))
+        .reduce((d1, d2) => d1 + d2, 0) / (descriptors.length || 1)
+      )
+  }
+
+  return descriptorsByClass
+    // .map(
+    //   ({descriptors, className}) => ({
+    //     distance: computeMeanDistance(descriptors),
+    //     className
+    //   })
+    // )
+    .map(function({descriptors, className}) {
+      const md = computeMeanDistance(descriptors)
+      console.log(className, md)
+      return {
+        distance: md,
+        className
+      }
+    })
+    .reduce((best, curr) => best.distance < curr.distance ? best : curr)
 }
 
 async function run() {
@@ -72,22 +108,27 @@ async function onPlay(isVideo) {
   canvas.width = width
   canvas.height = height
 
-  const {results, stats} = await faceapi.nets.mtcnn.forwardWithStats(videoEl, mtcnnParams)
-  updateTimeStats(stats.total)
+  const ts = Date.now()
+  const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
+  updateTimeStats(Date.now() - ts)
 
-  if (results) {
-    results.forEach(({faceDetection, faceLandmarks}) => {
-      if (faceDetection.score < minConfidence) {
+  if (fullFaceDescriptions) {
+    fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
+      if (detection.score < minConfidence) {
         return
       }
-      const {x, y, height: boxHeight} = faceDetection.getBox()
-      faceapi.drawDetection('overlay', faceDetection.forSize(width, height))
-      faceapi.drawLandmarks('overlay', faceLandmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
+      const {x, y, height: boxHeight} = detection.getBox()
+      faceapi.drawDetection('overlay', detection.forSize(width, height))
+      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
+
+      const bestMatch = getBestMatch(faceEmbeddings, descriptor)
+      console.log(bestMatch)
+      const text = `${bestMatch.distance < maxFaceDist ? bestMatch.className : 'Unknown'} (${bestMatch.distance})`
       faceapi.drawText(
         canvasCtx,
         x,
         y + boxHeight,
-        'hello',
+        text,
         Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
       )
     })
