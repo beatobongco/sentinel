@@ -3,6 +3,7 @@ const canvas = document.getElementById('overlay')
 const canvasCtx = canvas.getContext('2d')
 const maxFaceDist = 0.6
 const minConfidence = 0.9
+const numTrainingImages = 2
 const mtcnnParams = {
   /*
     Using CPU (Intel Core i5-6300U CPU @ 2.40GHz)
@@ -36,12 +37,15 @@ async function trainFaceRecognition(classes) {
   */
   return Promise.all(classes.map(
     async className => {
+      let descriptors = []
       // all this anonymous function does is get face embeddings
       // for each of our classes
-      const img = await faceapi.bufferToImage(
-        await fetchImage('train/' + className + '.jpg'))
-      // 128-D face embedding
-      const descriptors = [await faceapi.recognitionNet.computeFaceDescriptor(img)]
+      for (let i = 1; i < (numTrainingImages + 1); i++) {
+        const img = await faceapi.bufferToImage(
+          await fetchImage('train/' + className + i + '.jpg'))
+        // 128-D face embedding
+        descriptors.push(await faceapi.recognitionNet.computeFaceDescriptor(img))
+      }
       return {
         className,
         descriptors
