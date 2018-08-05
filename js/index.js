@@ -1,20 +1,22 @@
 const videoEl = document.querySelector('#inputVideo')
 const canvas = document.getElementById('overlay')
 const canvasCtx = canvas.getContext('2d')
-const minConfidence = .9
-
-/*
-  Using CPU (Intel Core i5-6300U CPU @ 2.40GHz)
-  minFaceSize
-    100 gets me ~20fps
-    200 gets me ~30-40fps
-*/
+const maxFaceDist = 0.6
+const minConfidence = 0.9
 const mtcnnParams = {
+  /*
+    Using CPU (Intel Core i5-6300U CPU @ 2.40GHz)
+    minFaceSize
+      100 gets me ~20fps
+      200 gets me ~30-40fps
+  */
   minFaceSize: 100
 }
 
 let modelLoaded = false
 let forwardTimes = []
+let CLASSES = ['beato']
+let faceEmbeddings
 
 function updateTimeStats(timeInMs) {
   forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
@@ -23,25 +25,43 @@ function updateTimeStats(timeInMs) {
   $('#fps').val(`${faceapi.round(1000 / avgTimeInMs)}`)
 }
 
+async function fetchImage(uri) {
+  return (await fetch(uri)).blob()
+}
+
+async function trainFaceRecognition(classes) {
+  return Promise.all(classes.map(
+    async className => {
+      // all this anonymous function does is get face embeddings
+      // for each of our classes
+      const img = await faceapi.bufferToImage(
+        await fetchImage('train/' + className + '.jpg'))
+      // 128-D face embedding
+      const descriptor = await faceapi.recognitionNet.computeFaceDescriptor(img)
+      return {
+        className: className,
+        // an array for now so we can have multiple descriptors later
+        descriptors: [descriptor]
+      }
+    }))
+}
+
 async function run() {
-  console.log('run')
   // load models
   await faceapi.loadMtcnnModel('models/')
+  await faceapi.loadFaceRecognitionModel('models/')
+
   modelLoaded = true
-  console.log('model loaded')
+
+  faceEmbeddings = await trainFaceRecognition(CLASSES)
 
   // setup video feed
-  const video = document.querySelector('#inputVideo')
-
   navigator.mediaDevices.getUserMedia({video: true}).
-    then(stream => video.srcObject = stream)
+    then(stream => videoEl.srcObject = stream)
 }
 
 async function onPlay(isVideo) {
-  console.log('onPlay')
-
-  if(videoEl.paused || videoEl.ended || !modelLoaded) {
-    console.log('onPlay stopped')
+  if (videoEl.paused || videoEl.ended || !modelLoaded) {
     return false
   }
 
@@ -71,6 +91,8 @@ async function onPlay(isVideo) {
         Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
       )
     })
+
+    //pause if in single shot mode
     if (!isVideo) {
       videoEl.pause()
     }
