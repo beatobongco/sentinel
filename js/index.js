@@ -16,8 +16,8 @@ const mtcnnParams = {
 
 let modelLoaded = false
 let forwardTimes = []
-let CLASSES = ['beato', 'andrew']
-let faceEmbeddings
+let CLASSES = ['andrew']
+let faceEmbeddings = []
 
 function updateTimeStats(timeInMs) {
   forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
@@ -26,30 +26,20 @@ function updateTimeStats(timeInMs) {
   $('#fps').val(`${faceapi.round(1000 / avgTimeInMs)}`)
 }
 
-async function fetchImage(uri) {
-  return (await fetch(uri)).blob()
-}
-
-async function trainFaceRecognition(classes) {
-  /*
-    In: array of classes
-    Out: array of objects with each class's name and face embedding
-  */
+async function getEmbeddingsFromLocalStorage(classes) {
   return Promise.all(classes.map(
     async className => {
-      let descriptors = []
-      // all this anonymous function does is get face embeddings
-      // for each of our classes
-      for (let i = 1; i < (numTrainingImages + 1); i++) {
-        const img = await faceapi.bufferToImage(
-          await fetchImage('train/' + className + i + '.jpg'))
-        // 128-D face embedding
-        descriptors.push(await faceapi.recognitionNet.computeFaceDescriptor(img))
-      }
-      return {
-        className,
-        descriptors
-      }
+      await localforage.getItem(className, (err, val) => {
+        if (!err) {
+          faceEmbeddings.push({
+            className: className,
+            descriptors: val
+          })
+          console.log('Loaded class: ' + className)
+        } else {
+          console.log(err)
+        }
+      })
     }))
 }
 
@@ -77,13 +67,25 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
     // )
     .map(function({descriptors, className}) {
       const md = computeMeanDistance(descriptors)
-      console.log(className, md)
+      // console.log(className, md)
       return {
         distance: md,
         className
       }
     })
     .reduce((best, curr) => best.distance < curr.distance ? best : curr)
+}
+
+async function getClasses() {
+  localforage.getItem('CLASSES', (err, val) => {
+    if (!err) {
+      CLASSES = JSON.parse(val)
+      console.log('Loaded', CLASSES)
+    } else {
+      console.log(err)
+      console.log("Why not train some classes of your own?")
+    }
+  })
 }
 
 async function run() {
@@ -93,14 +95,20 @@ async function run() {
 
   modelLoaded = true
 
-  faceEmbeddings = await trainFaceRecognition(CLASSES)
+  await localforage.getItem('CLASSES', (err, val) => {
+    CLASSES = val
+  })
+  await getEmbeddingsFromLocalStorage(CLASSES)
+  // faceEmbeddings = await trainFaceRecognition(CLASSES)
 
   // setup video feed
   navigator.mediaDevices.getUserMedia({video: true}).
     then(stream => videoEl.srcObject = stream)
 }
 
-async function onPlay(isVideo) {
+let trainingData = []
+
+async function onPlay(isVideo, isTraining, numTrainImages=50) {
   if (videoEl.paused || videoEl.ended || !modelLoaded) {
     return false
   }
@@ -125,16 +133,45 @@ async function onPlay(isVideo) {
       faceapi.drawDetection('overlay', detection.forSize(width, height))
       faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
 
-      const bestMatch = getBestMatch(faceEmbeddings, descriptor)
-      console.log(bestMatch)
-      const text = `${bestMatch.distance < maxFaceDist ? bestMatch.className : 'Unknown'} (${bestMatch.distance})`
-      faceapi.drawText(
-        canvasCtx,
-        x,
-        y + boxHeight,
-        text,
-        Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
-      )
+      // TODO: refactor this later
+      if (isTraining) {
+        // If we're training, save the detection to localstorage
+        // let's get 50 for now
+        trainingData.push(descriptor)
+        if (trainingData.length >= numTrainImages) {
+          let className = $('#trainClass').val()
+          CLASSES.push(className)
+          localforage.setItem('CLASSES', CLASSES, err => {
+            if (err) {
+              console.log('Something went wrong while saving to localstorage')
+              console.log(err)
+            }
+          })
+          localforage.setItem(className, trainingData, err => {
+            if (err) {
+              console.log('Something went wrong while saving to localstorage')
+              console.log(err)
+            }
+          })
+          // cleanup by pausing the video feed, stopping the loop
+          // and setting training data to an empty array
+          videoEl.pause()
+          trainingData = []
+          return
+        }
+      } else {
+        // Inferencing
+        const bestMatch = getBestMatch(faceEmbeddings, descriptor)
+        console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
+        const text = `${bestMatch.distance < maxFaceDist ? bestMatch.className : 'Unknown'} (${bestMatch.distance})`
+        faceapi.drawText(
+          canvasCtx,
+          x,
+          y + boxHeight,
+          text,
+          Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
+        )
+      }
     })
 
     //pause if in single shot mode
@@ -142,7 +179,7 @@ async function onPlay(isVideo) {
       videoEl.pause()
     }
   }
-  setTimeout(() => onPlay(videoEl))
+  setTimeout(() => onPlay(isVideo, isTraining))
 }
 
 $(document).ready(run)

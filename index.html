@@ -19,11 +19,11 @@
   </style>
 </head>
 <body>
-  <div class="row">
+  <div>
     <label for="fps">Estimated Fps:</label>
     <input disabled value="-" id="fps" type="text" class="bold">
   </div>
-  <div class="row">
+  <div>
     <label for="time">Time:</label>
     <input disabled value="-" id="time" type="text" class="bold">
   </div>
@@ -35,11 +35,23 @@
       id="inputVideo"></video>
     <canvas id="overlay"></canvas>
   </div>
-  <button onClick="singleShot()">Single shot</button>
-  <button onClick="onPlay(true)">Video</button>
-  <button onClick="play()">New</button>
-  <button onClick="stop()">Stop</button>
+  <div>
+    <h3>General</h3>
+    <button onClick="play()">New</button>
+    <button onClick="stop()">Stop</button>
+  </div>
+  <div>
+    <h3>Inferencing</h3>
+    <button onClick="singleShot()">Single shot (MTCNN)</button>
+    <button onClick="onPlay(true)">Real-time (MTCNN)</button>
+  </div>
+  <div>
+    <h3>Training</h3>
+    <input id="trainClass" type="text" name="" placeholder="Type a name for your class">
+    <button onClick="onPlay(true, true)">Start capture</button>
+  </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.2/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="js/lib/face-api.js"></script>
 <script src="js/index.js"></script>
