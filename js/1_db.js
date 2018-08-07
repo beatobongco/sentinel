@@ -13,7 +13,7 @@ const db = {
     // we need this to be an async fn because we need our state complete
     // before doing anything else!
     if (this.initialized) {
-      console.warn("DB already initialized. Only do this once.")
+      console.warn('DB already initialized. Only do this once.')
       return
     }
 
@@ -21,27 +21,11 @@ const db = {
     this.classes = []
     this.embeddings = []
 
-    await localforage.getItem('CLASSES', async (err, val) => {
-      if (!err) {
-        this.classes = val
-        await Promise.all(this.classes.map(
-          async className => {
-            await localforage.getItem(className, (err, val) => {
-              if (!err) {
-                this.embeddings.push({
-                  className: className,
-                  descriptors: val
-                })
-                console.log('Loaded class: ' + className)
-              } else {
-                console.log(err)
-              }
-            })
-          }))
-      } else {
-        console.log(err)
-      }
-    })
+    this.classes = await localforage.getItem('CLASSES')
+    this.embeddings = await Promise.all(
+      this.classes.map(
+        async className => ({className, descriptors: await localforage.getItem(className)})
+        ))
   },
   getClasses: function () {
     return this.classes

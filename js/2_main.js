@@ -67,8 +67,10 @@ async function run() {
   await faceapi.loadFaceRecognitionModel('models/')
 
   modelLoaded = true
+  $('#status').text('Models loaded! Loading data from localstorage...')
 
   await myDB.init()
+  $('#status').text('Data loaded!')
 
   // setup video feed
   navigator.mediaDevices.getUserMedia({video: true}).
@@ -91,48 +93,46 @@ async function onPlay(isVideo, isTraining, numTrainImages=50) {
   const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
   updateTimeStats(Date.now() - ts)
 
-  if (fullFaceDescriptions) {
-    fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
-      if (detection.score < minConfidence) {
+  fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
+    if (detection.score < minConfidence) {
+      return
+    }
+    const {x, y, height: boxHeight} = detection.getBox()
+    faceapi.drawDetection('overlay', detection.forSize(width, height))
+    faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
+
+    // TODO: refactor this later
+    if (isTraining) {
+      // If we're training, save the detection to localstorage
+      // let's get 50 for now
+      trainingData.push(descriptor)
+      if (trainingData.length >= numTrainImages) {
+        myDB.addClass($('#trainClass').val(), trainingData)
+
+        // cleanup by pausing the video feed, stopping the loop
+        // and setting training data to an empty array
+        videoEl.pause()
+        trainingData = []
         return
       }
-      const {x, y, height: boxHeight} = detection.getBox()
-      faceapi.drawDetection('overlay', detection.forSize(width, height))
-      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
-
-      // TODO: refactor this later
-      if (isTraining) {
-        // If we're training, save the detection to localstorage
-        // let's get 50 for now
-        trainingData.push(descriptor)
-        if (trainingData.length >= numTrainImages) {
-          myDB.addClass($('#trainClass').val(), trainingData)
-
-          // cleanup by pausing the video feed, stopping the loop
-          // and setting training data to an empty array
-          videoEl.pause()
-          trainingData = []
-          return
-        }
-      } else {
-        // Inferencing
-        const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
-        console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
-        const text = `${bestMatch.distance < maxFaceDist ? bestMatch.className : 'Unknown'} (${bestMatch.distance})`
-        faceapi.drawText(
-          canvasCtx,
-          x,
-          y + boxHeight,
-          text,
-          Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
-        )
-      }
-    })
-
-    //pause if in single shot mode
-    if (!isVideo) {
-      videoEl.pause()
+    } else {
+      // Inferencing
+      const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
+      console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
+      const text = `${bestMatch.distance < maxFaceDist ? bestMatch.className : 'Unknown'} (${bestMatch.distance})`
+      faceapi.drawText(
+        canvasCtx,
+        x,
+        y + boxHeight,
+        text,
+        Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
+      )
     }
+  })
+
+  //pause if in single shot mode
+  if (!isVideo) {
+    videoEl.pause()
   }
   setTimeout(() => onPlay(isVideo, isTraining))
 }
