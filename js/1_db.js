@@ -33,11 +33,28 @@ const db = {
   getEmbeddings: function () {
     return this.embeddings
   },
-  addClass: function (className, embeddings) {
-    this.classes.push(className)
-    this.embeddings.push({className, embeddings})
+  addClass: function (className, descriptors) {
+    this.embeddings = [...this.embeddings, {className, descriptors}]
+    this.classes = [...this.classes, className]
 
-    localforage.setItem('CLASSES', this.classes, err => err ? console.log(err) : null)
-    localforage.setItem(className, embeddings, err => err ? console.log(err) : null)
+    localforage.setItem('CLASSES', this.classes)
+    localforage.setItem(className, descriptors)
+  },
+  deleteClass: function (className) {
+    this.classes = immutableRemove(this.classes, this.classes.indexOf(className))
+    this.embeddings = immutableRemove(this.embeddings, this.embeddings.findIndex((el) => el.className === className))
+
+    localforage.setItem('CLASSES', this.classes)
+    localforage.removeItem(className)
   }
+}
+
+function immutableRemove (list, idx) {
+  if (idx > -1) {
+    list = [
+      ...list.slice(0, idx),
+      ...list.slice(idx + 1)
+    ]
+  }
+  return list
 }

@@ -30,10 +30,12 @@ function updateTimeStats(timeInMs) {
 
 function getBestMatch(descriptorsByClass, queryDescriptor) {
   /*
-    In:
+    Args:
       descriptorsByClass: array of objs with className and face
                           embeddings
       queryDescriptor: face embeddings of incoming detection
+    Returns:
+      Object {className, distance}
   */
   function computeMeanDistance(descriptors) {
     return faceapi.round(
@@ -44,20 +46,12 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
   }
 
   return descriptorsByClass
-    // .map(
-    //   ({descriptors, className}) => ({
-    //     distance: computeMeanDistance(descriptors),
-    //     className
-    //   })
-    // )
-    .map(function({descriptors, className}) {
-      const md = computeMeanDistance(descriptors)
-      // console.log(className, md)
-      return {
-        distance: md,
+    .map(
+      ({descriptors, className}) => ({
+        distance: computeMeanDistance(descriptors),
         className
-      }
-    })
+      })
+    )
     .reduce((best, curr) => best.distance < curr.distance ? best : curr)
 }
 
@@ -77,7 +71,28 @@ async function run() {
     then(stream => videoEl.srcObject = stream)
 }
 
-async function onPlay(isVideo, isTraining, numTrainImages=50) {
+function doFaceDetection (detection, descriptor) {
+  const {x, y, height: boxHeight} = detection.getBox()
+  const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
+  console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
+  let text = 'Unknown'
+  let color = 'red'
+
+  if (bestMatch.distance < maxFaceDist) {
+    text = `${bestMatch.className} (${bestMatch.distance})`
+    color = 'green'
+  }
+
+  faceapi.drawText(
+    canvasCtx,
+    x,
+    y + boxHeight,
+    text,
+    Object.assign(faceapi.getDefaultDrawOptions(), { color: color, fontSize: 20 })
+  )
+}
+
+async function onPlay(isVideo, isTraining, numTrainImages = 50) {
   $('#status').text('Recording...')
   if (videoEl.paused || videoEl.ended || !modelLoaded) {
     return false
@@ -97,8 +112,11 @@ async function onPlay(isVideo, isTraining, numTrainImages=50) {
   fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
     if (detection.score < minConfidence) {
       return
+    } else if (!isVideo) {
+      // pause if in single shot mode
+      videoEl.pause()
     }
-    const {x, y, height: boxHeight} = detection.getBox()
+
     faceapi.drawDetection('overlay', detection.forSize(width, height))
     faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
 
@@ -117,24 +135,9 @@ async function onPlay(isVideo, isTraining, numTrainImages=50) {
         return
       }
     } else {
-      // Inferencing
-      const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
-      console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
-      const text = `${bestMatch.distance < maxFaceDist ? bestMatch.className : 'Unknown'} (${bestMatch.distance})`
-      faceapi.drawText(
-        canvasCtx,
-        x,
-        y + boxHeight,
-        text,
-        Object.assign(faceapi.getDefaultDrawOptions(), { color: 'green', fontSize: 20 })
-      )
+      doFaceDetection(detection, descriptor)
     }
   })
-
-  //pause if in single shot mode
-  if (!isVideo) {
-    videoEl.pause()
-  }
   setTimeout(() => onPlay(isVideo, isTraining))
 }
 

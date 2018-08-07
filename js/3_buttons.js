@@ -14,3 +14,7 @@ function singleShot() {
 videoEl.onpause = () => {
   $('#status').text('Recording paused')
 }
+
+function deleteClass() {
+  myDB.deleteClass($('#trainClass').val())
+}
