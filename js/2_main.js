@@ -3,7 +3,6 @@ const canvas = document.getElementById('overlay')
 const canvasCtx = canvas.getContext('2d')
 const maxFaceDist = 0.6
 const minConfidence = 0.9
-const numTrainingImages = 2
 const mtcnnParams = {
   /*
     Using CPU (Intel Core i5-6300U CPU @ 2.40GHz)
@@ -33,7 +32,7 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
     Args:
       descriptorsByClass: array of objs with className and face
                           embeddings
-      queryDescriptor: face embeddings of incoming detection
+         queryDescriptor: face embeddings of incoming detection
     Returns:
       Object {className, distance}
   */
@@ -55,7 +54,7 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
     .reduce((best, curr) => best.distance < curr.distance ? best : curr)
 }
 
-async function run() {
+async function run () {
   // load models
   await faceapi.loadMtcnnModel('models/')
   await faceapi.loadFaceRecognitionModel('models/')
@@ -92,8 +91,23 @@ function doFaceDetection (detection, descriptor) {
   )
 }
 
-async function onPlay(isVideo, isTraining, numTrainImages = 50) {
-  $('#status').text('Recording...')
+function train (descriptor, numTrainImages = 50) {
+  trainingData.push(descriptor)
+  const cls = $('#trainClass').val()
+  $('#status').text(`Getting embeddings for class: ${cls}... ${trainingData.length} / ${numTrainImages}`)
+  if (trainingData.length >= numTrainImages) {
+    // Save the embeddings to localstorage
+    myDB.addClass(cls, trainingData)
+
+    // cleanup by pausing the video feed
+    // and setting training data to an empty array
+    videoEl.pause()
+    trainingData = []
+    $('#status').text('Done training!')
+  }
+}
+
+async function forwardPass (mode, singleShot = false) {
   if (videoEl.paused || videoEl.ended || !modelLoaded) {
     return false
   }
@@ -112,33 +126,22 @@ async function onPlay(isVideo, isTraining, numTrainImages = 50) {
   fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
     if (detection.score < minConfidence) {
       return
-    } else if (!isVideo) {
-      // pause if in single shot mode
-      videoEl.pause()
     }
 
     faceapi.drawDetection('overlay', detection.forSize(width, height))
     faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
 
-    // TODO: refactor this later
-    if (isTraining) {
-      // If we're training, save the detection to localstorage
-      // let's get 50 for now
-      trainingData.push(descriptor)
-      if (trainingData.length >= numTrainImages) {
-        myDB.addClass($('#trainClass').val(), trainingData)
-
-        // cleanup by pausing the video feed, stopping the loop
-        // and setting training data to an empty array
-        videoEl.pause()
-        trainingData = []
-        return
-      }
-    } else {
+    if (mode === 'training') {
+      train(descriptor)
+    } else if (mode === 'inference') {
       doFaceDetection(detection, descriptor)
+      if (singleShot) {
+        videoEl.pause()
+        $('#status').text('Recording paused (single shot mode)')
+      }
     }
   })
-  setTimeout(() => onPlay(isVideo, isTraining))
+  setTimeout(() => forwardPass(mode))
 }
 
 $(document).ready(run)

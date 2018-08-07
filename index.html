@@ -34,7 +34,6 @@
     <video
       autoplay
       muted
-      onPlay="onPlay(true)"
       id="inputVideo"></video>
     <canvas id="overlay"></canvas>
   </div>
@@ -46,12 +45,12 @@
   <div>
     <h3>Inferencing</h3>
     <button onClick="singleShot()">Single shot (MTCNN)</button>
-    <button onClick="onPlay(true)">Real-time (MTCNN)</button>
+    <button onClick="realTime()">Real-time (MTCNN)</button>
   </div>
   <div>
     <h3>Training</h3>
     <input id="trainClass" type="text" name="" placeholder="Type a name for your class">
-    <button onClick="onPlay(true, true)">Train class</button>
+    <button onClick="trainClass()">Train class</button>
     <button onClick="deleteClass()">Delete class</button>
   </div>
 

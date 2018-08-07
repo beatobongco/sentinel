@@ -1,20 +1,35 @@
-function play() {
+function _play () {
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
   videoEl.play()
 }
 
-function stop() {
+function play () {
+  $('#status').text('Recording resumed')
+  _play()
+}
+
+function stop () {
+  $('#status').text('Recording paused')
   videoEl.pause()
 }
 
-function singleShot() {
-  canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
-  onPlay()
+function deleteClass () {
+  const cls = $('#trainClass').val()
+  myDB.deleteClass(cls)
+  $('#status').text(`Class ${cls} deleted.`)
 }
 
-videoEl.onpause = () => {
-  $('#status').text('Recording paused')
+function singleShot () {
+  _play()
+  forwardPass('inference', true)
 }
 
-function deleteClass() {
-  myDB.deleteClass($('#trainClass').val())
+function realTime () {
+  _play()
+  forwardPass('inference')
+}
+
+function trainClass() {
+  _play()
+  forwardPass('training')
 }

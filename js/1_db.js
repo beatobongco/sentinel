@@ -26,6 +26,7 @@ const db = {
       this.classes.map(
         async className => ({className, descriptors: await localforage.getItem(className)})
         ))
+    console.log('Loaded classes:', this.classes)
   },
   getClasses: function () {
     return this.classes
