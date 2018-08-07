@@ -11,36 +11,21 @@ const mtcnnParams = {
       100 gets me ~20fps
       200 gets me ~30-40fps
   */
-  minFaceSize: 100
+  minFaceSize: 200
 }
-
+let myDB = Object.create(db)
 let modelLoaded = false
 let forwardTimes = []
-let CLASSES = ['andrew']
-let faceEmbeddings = []
+
+// a temporary container for our training data
+// this should always be cleared after a new class is added
+let trainingData = []
 
 function updateTimeStats(timeInMs) {
   forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
   const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
   $('#time').val(`${Math.round(avgTimeInMs)} ms`)
   $('#fps').val(`${faceapi.round(1000 / avgTimeInMs)}`)
-}
-
-async function getEmbeddingsFromLocalStorage(classes) {
-  return Promise.all(classes.map(
-    async className => {
-      await localforage.getItem(className, (err, val) => {
-        if (!err) {
-          faceEmbeddings.push({
-            className: className,
-            descriptors: val
-          })
-          console.log('Loaded class: ' + className)
-        } else {
-          console.log(err)
-        }
-      })
-    }))
 }
 
 function getBestMatch(descriptorsByClass, queryDescriptor) {
@@ -76,18 +61,6 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
     .reduce((best, curr) => best.distance < curr.distance ? best : curr)
 }
 
-async function getClasses() {
-  localforage.getItem('CLASSES', (err, val) => {
-    if (!err) {
-      CLASSES = JSON.parse(val)
-      console.log('Loaded', CLASSES)
-    } else {
-      console.log(err)
-      console.log("Why not train some classes of your own?")
-    }
-  })
-}
-
 async function run() {
   // load models
   await faceapi.loadMtcnnModel('models/')
@@ -95,18 +68,12 @@ async function run() {
 
   modelLoaded = true
 
-  await localforage.getItem('CLASSES', (err, val) => {
-    CLASSES = val
-  })
-  await getEmbeddingsFromLocalStorage(CLASSES)
-  // faceEmbeddings = await trainFaceRecognition(CLASSES)
+  await myDB.init()
 
   // setup video feed
   navigator.mediaDevices.getUserMedia({video: true}).
     then(stream => videoEl.srcObject = stream)
 }
-
-let trainingData = []
 
 async function onPlay(isVideo, isTraining, numTrainImages=50) {
   if (videoEl.paused || videoEl.ended || !modelLoaded) {
@@ -139,20 +106,8 @@ async function onPlay(isVideo, isTraining, numTrainImages=50) {
         // let's get 50 for now
         trainingData.push(descriptor)
         if (trainingData.length >= numTrainImages) {
-          let className = $('#trainClass').val()
-          CLASSES.push(className)
-          localforage.setItem('CLASSES', CLASSES, err => {
-            if (err) {
-              console.log('Something went wrong while saving to localstorage')
-              console.log(err)
-            }
-          })
-          localforage.setItem(className, trainingData, err => {
-            if (err) {
-              console.log('Something went wrong while saving to localstorage')
-              console.log(err)
-            }
-          })
+          myDB.addClass($('#trainClass').val(), trainingData)
+
           // cleanup by pausing the video feed, stopping the loop
           // and setting training data to an empty array
           videoEl.pause()
@@ -161,7 +116,7 @@ async function onPlay(isVideo, isTraining, numTrainImages=50) {
         }
       } else {
         // Inferencing
-        const bestMatch = getBestMatch(faceEmbeddings, descriptor)
+        const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
         console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
         const text = `${bestMatch.distance < maxFaceDist ? bestMatch.className : 'Unknown'} (${bestMatch.distance})`
         faceapi.drawText(

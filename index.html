@@ -20,6 +20,9 @@
 </head>
 <body>
   <div>
+    <p>Status: <span id="status">LOADING</span></p>
+  </div>
+  <div>
     <label for="fps">Estimated Fps:</label>
     <input disabled value="-" id="fps" type="text" class="bold">
   </div>
@@ -51,10 +54,13 @@
     <button onClick="onPlay(true, true)">Start capture</button>
   </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.2/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="js/lib/face-api.js"></script>
-<script src="js/index.js"></script>
-<script src="js/buttons.js"></script>
+<!-- Order of loading js files is important since we have some shared globals like constants for now -->
+<script src="js/1_db.js"></script>
+<script src="js/2_main.js"></script>
+<script src="js/3_buttons.js"></script>
 </body>
 </html>
