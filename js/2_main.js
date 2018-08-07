@@ -44,6 +44,11 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
       )
   }
 
+  if (descriptorsByClass.length === 0) {
+    $('#status').text('No classes. Train some first!')
+    return
+  }
+
   return descriptorsByClass
     .map(
       ({descriptors, className}) => ({
@@ -63,7 +68,12 @@ async function run () {
   $('#status').text('Models loaded! Loading data from localstorage...')
 
   await myDB.init()
-  $('#status').text('Data loaded!')
+
+  if (myDB.getClasses().length === 0) {
+    $('#status').text('No classes in database. Press "Train" to get started!')
+  } else {
+    $('#status').text('Data loaded!')
+  }
 
   // setup video feed
   navigator.mediaDevices.getUserMedia({video: true}).
@@ -73,6 +83,9 @@ async function run () {
 function doFaceDetection (detection, descriptor) {
   const {x, y, height: boxHeight} = detection.getBox()
   const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
+  if (!bestMatch) {
+    return
+  }
   console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
   let text = 'Unknown'
   let color = 'red'
@@ -141,7 +154,7 @@ async function forwardPass (mode, singleShot = false) {
       }
     }
   })
-  setTimeout(() => forwardPass(mode))
+  setTimeout(() => forwardPass(mode, singleShot))
 }
 
 $(document).ready(run)

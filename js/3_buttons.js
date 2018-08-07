@@ -3,6 +3,16 @@ function _play () {
   videoEl.play()
 }
 
+async function _play_then_infer (mode, singleShot = false) {
+  _play()
+
+  await new Promise((resolve) => {
+    setTimeout(resolve, 100)
+  })
+  console.log(mode, singleShot)
+  forwardPass(mode, singleShot)
+}
+
 function play () {
   $('#status').text('Recording resumed')
   _play()
@@ -20,16 +30,13 @@ function deleteClass () {
 }
 
 function singleShot () {
-  _play()
-  forwardPass('inference', true)
+  _play_then_infer('inference', true)
 }
 
 function realTime () {
-  _play()
-  forwardPass('inference')
+  _play_then_infer('inference')
 }
 
 function trainClass() {
-  _play()
-  forwardPass('training')
+  _play_then_infer('training')
 }

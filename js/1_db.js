@@ -21,12 +21,15 @@ const db = {
     this.classes = []
     this.embeddings = []
 
-    this.classes = await localforage.getItem('CLASSES')
-    this.embeddings = await Promise.all(
-      this.classes.map(
-        async className => ({className, descriptors: await localforage.getItem(className)})
-        ))
-    console.log('Loaded classes:', this.classes)
+    const classes = await localforage.getItem('CLASSES')
+    if (classes) {
+      this.classes = classes
+      this.embeddings = await Promise.all(
+        this.classes.map(
+          async className => ({className, descriptors: await localforage.getItem(className)})
+          ))
+      console.log('Loaded classes:', this.classes)
+    }
   },
   getClasses: function () {
     return this.classes
