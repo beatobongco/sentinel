@@ -78,6 +78,7 @@ async function run() {
 }
 
 async function onPlay(isVideo, isTraining, numTrainImages=50) {
+  $('#status').text('Recording...')
   if (videoEl.paused || videoEl.ended || !modelLoaded) {
     return false
   }
