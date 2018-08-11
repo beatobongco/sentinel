@@ -1,5 +1,6 @@
 body {
   padding: 0 1rem;
+  font-family: 'Roboto', sans-serif;
 }
 .camera {
   border: 1px solid black;
