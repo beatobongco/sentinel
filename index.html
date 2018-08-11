@@ -17,7 +17,9 @@
 </head>
 <body>
   <h1>Sentinel</h1>
-  <p>Proof of concept quick facial recognition timekeeping system.</p>
+  <div>
+    <p>Proof of concept quick facial recognition timekeeping system completely client-side in the browser. <a href="#info"><small>How do I use this?</small></a></p>
+  </div>
   <div>
     <p>Status: <strong id="status">Loading models...</strong></p>
   </div>
@@ -47,11 +49,14 @@
       <input id="numTrainImages"
         type="range"
         min="1"
-        max="50"
+        max="20"
         value="5"
         oninput="onRangeInput(this)">
       <span id="trainImagesSpan"></span>
     </div>
+    <p>
+      <small>Note: Even 1 image works great! Try it!</small>
+    </p>
     <div>
       <button onClick="trainClass()">Train class</button>
       <button onClick="deleteClass()">Delete class</button>
@@ -70,6 +75,17 @@
     <button onClick="play()">Play/Resume</button>
     <button onClick="stop()">Stop camera</button>
   </div>
+  <h3 id="info">Instructions</h3>
+  <ol>
+    <li>Allow the system to use your webcam.</li>
+    <li>Type in the name of the person you want the system to recognize.</li>
+    <li>Have that person's face fully visible in front of the camera and press "Train class".</li>
+    <li>You may now detect this person by pressing "Single shot" or "Real-time".</li>
+  </ol>
+  <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
+  <p>Note also that all this data is stored in your browser and is not accessible to me or other third parties. So go bonkers with it!</p>
+  <hr>
+  <p><small>Made with 🔥 by <a href="https://beatobongco.com/UI-Kata/">Beato</a></small>.</p>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.2/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="js/lib/face-api.js"></script>
