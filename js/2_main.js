@@ -136,27 +136,37 @@ async function forwardPass (mode, singleShot = false) {
   canvas.height = height
 
   const ts = Date.now()
-  const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
-  updateTimeStats(Date.now() - ts)
 
-  fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
-    if (detection.score < minConfidence) {
-      return
-    }
+  // We need this try catch block because of
+  // https://github.com/justadudewhohacks/face-api.js/issues/66
+  // If we dont have this block, inferencing of training will stop
+  try {
+    const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
+    updateTimeStats(Date.now() - ts)
 
-    faceapi.drawDetection('overlay', detection.forSize(width, height))
-    faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
-
-    if (mode === 'training') {
-      train(descriptor)
-    } else if (mode === 'inference') {
-      doFaceDetection(detection, descriptor)
-      if (singleShot) {
-        videoEl.pause()
-        $('#status').text('Recording paused (single shot mode)')
+    fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
+      if (detection.score < minConfidence) {
+        return
       }
-    }
-  })
+
+      faceapi.drawDetection('overlay', detection.forSize(width, height))
+      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
+
+      if (mode === 'training') {
+        train(descriptor)
+      } else if (mode === 'inference') {
+        doFaceDetection(detection, descriptor)
+        if (singleShot) {
+          videoEl.pause()
+          $('#status').text('Recording paused (single shot mode)')
+        }
+      }
+    })
+  }
+  catch (err) {
+    console.log(err)
+  }
+
   setTimeout(() => forwardPass(mode, singleShot))
 }
 
