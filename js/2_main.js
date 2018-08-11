@@ -60,6 +60,9 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
 }
 
 async function run () {
+  // initial setup
+  $('#trainImagesSpan').text($('#numTrainImages').val())
+
   // load models
   await faceapi.loadMtcnnModel('models/')
   await faceapi.loadFaceRecognitionModel('models/')
@@ -104,7 +107,7 @@ function doFaceDetection (detection, descriptor) {
   )
 }
 
-function train (descriptor, numTrainImages = 50) {
+function train (descriptor, numTrainImages = parseInt($('#numTrainImages').val())) {
   trainingData.push(descriptor)
   const cls = $('#trainClass').val()
   $('#status').text(`Getting embeddings for class: ${cls}... ${trainingData.length} / ${numTrainImages}`)

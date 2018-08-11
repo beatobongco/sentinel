@@ -5,11 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/flexboxgrid/6.3.1/flexboxgrid.min.css">
   <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
   <div>
-    <p>Status: <span id="status">Loading models...</span></p>
+    <p>Status: <strong id="status">Loading models...</strong></p>
   </div>
   <div>
     <label for="fps">Estimated Fps:</label>
@@ -27,23 +28,39 @@
     <canvas id="overlay"></canvas>
   </div>
   <div>
-    <h3>General</h3>
-    <button onClick="play()">New</button>
-    <button onClick="stop()">Stop</button>
+    <h3>Train the system on a face</h3>
+    <div>
+      <p>Whose face is this?</p>
+      <input id="trainClass" type="text" name="">
+    </div>
+    <p>How many pictures will the system take for training?</p>
+    <div class="train-slider">
+      <input id="numTrainImages"
+        type="range"
+        min="1"
+        max="50"
+        value="5"
+        oninput="onRangeInput(this)">
+      <span id="trainImagesSpan"></span>
+    </div>
+    <div>
+      <button onClick="trainClass()">Train class</button>
+      <button onClick="deleteClass()">Delete class</button>
+    </div>
   </div>
   <div>
-    <h3>Inferencing</h3>
-    <button onClick="singleShot()">Single shot (MTCNN)</button>
-    <button onClick="realTime()">Real-time (MTCNN)</button>
+    <h3>Detect faces</h3>
+    <p>Current network: MTCNN</p>
+    <div>
+      <button onClick="singleShot()">Single shot</button>
+      <button onClick="realTime()">Real-time</button>
+    </div>
   </div>
   <div>
-    <h3>Training</h3>
-    <input id="trainClass" type="text" name="" placeholder="Type a name for your class">
-    <button onClick="trainClass()">Train class</button>
-    <button onClick="deleteClass()">Delete class</button>
+    <h3>Debug</h3>
+    <button onClick="play()">Play/Resume</button>
+    <button onClick="stop()">Stop camera</button>
   </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.2/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="js/lib/face-api.js"></script>

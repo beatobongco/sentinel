@@ -40,3 +40,7 @@ function realTime () {
 function trainClass() {
   _play_then_infer('training')
 }
+
+function onRangeInput(e) {
+  $('#trainImagesSpan').text(e.value)
+}
