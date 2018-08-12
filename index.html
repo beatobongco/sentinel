@@ -24,12 +24,17 @@
     <p>Status: <strong id="status">Loading models... (8MB)</strong></p>
   </div>
   <div>
-    <label for="fps">Estimated Fps:</label>
-    <input disabled value="-" id="fps" type="text" class="bold">
-  </div>
-  <div>
-    <label for="time">Time:</label>
-    <input disabled value="-" id="time" type="text" class="bold">
+    <p>
+      <small>
+        <span>Estimated Fps:</span>
+        <span id="fps"></span>
+        <span>|</span>
+      </small>
+      <small>
+        <span>Inference time in ms:</span>
+        <span id="time"></span>
+      </small>
+    </p>
   </div>
   <div class="camera">
     <video
@@ -42,7 +47,6 @@
     <button @click="switchTab('train')">Train</button>
     <button @click="switchTab('detect')">Detect</button>
     <button @click="switchTab('classlist')">Edit/Delete classes</button>
-    <button @click="switchTab('debug')">Debug</button>
     <button @click="switchTab('info')">Info</button>
     <div
       class="train-tab"
@@ -78,19 +82,13 @@
       <div>
         <button onClick="singleShot()">Single shot</button>
         <button onClick="realTime()">Real-time</button>
+        <button onClick="stop()">Stop</button>
       </div>
     </div>
     <div
       class="classlist-tab"
       v-if="tab === 'classlist'">
       <p>Test</p>
-    </div>
-    <div
-      class="debug"
-      v-if="tab === 'debug'">
-      <h3>Debug</h3>
-      <button onClick="play()">Play/Resume</button>
-      <button onClick="stop()">Stop camera</button>
     </div>
     <div
       class="info"

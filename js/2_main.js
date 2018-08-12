@@ -24,8 +24,8 @@ let trainingData = []
 function updateTimeStats(timeInMs) {
   forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
   const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
-  $('#time').val(`${Math.round(avgTimeInMs)} ms`)
-  $('#fps').val(`${faceapi.round(1000 / avgTimeInMs)}`)
+  $('#time').text(`${Math.round(avgTimeInMs)} ms`)
+  $('#fps').text(`${faceapi.round(1000 / avgTimeInMs)}`)
 }
 
 function getBestMatch(descriptorsByClass, queryDescriptor) {
