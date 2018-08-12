@@ -88,7 +88,15 @@
     <div
       class="classlist-tab"
       v-if="tab === 'classlist'">
-      <p>Test</p>
+      <h3>Edit/Delete classes</h3>
+      <table>
+        <tbody>
+          <face-class
+            v-for="cls in db.getClasses()"
+            :cls="cls" />
+
+        </tbody>
+      </table>
     </div>
     <div
       class="info"

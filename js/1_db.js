@@ -54,6 +54,10 @@ const db = {
 
     localforage.setItem('CLASSES', this.classes)
     localforage.removeItem(className)
+  },
+  updateClass: function (oldClass, newClass) {
+    this.addClass(newClass, this.embeddings[oldClass])
+    this.deleteClass(oldClass)
   }
 }
 
