@@ -3,6 +3,7 @@ const canvas = document.getElementById('overlay')
 const canvasCtx = canvas.getContext('2d')
 const maxFaceDist = 0.6
 const minConfidence = 0.9
+const unknownPrefix = 'Unknown #'
 const mtcnnParams = {
   /*
     Using CPU (Intel Core i5-6300U CPU @ 2.40GHz)
@@ -90,11 +91,15 @@ function doFaceDetection (detection, descriptor) {
 
   if (bestMatch && bestMatch.distance < maxFaceDist) {
     className = `${bestMatch.className} (${bestMatch.distance})`
-    color = 'green'
+    if (bestMatch.className.startsWith(unknownPrefix)) {
+      color = 'red'
+    } else {
+      color = 'green'
+    }
   } else {
-    // If class is unkown, assign it a number and
+    // If class is unknown, assign it a number and
     // save the embeddings to the database
-    className = `Unknown #${myDB.getAutoIncrement()}`
+    className = unknownPrefix + myDB.getAutoIncrement()
     color = 'red'
     myDB.addClass(className, [descriptor])
   }

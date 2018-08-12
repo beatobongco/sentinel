@@ -38,60 +38,86 @@
       id="inputVideo"></video>
     <canvas id="overlay"></canvas>
   </div>
-  <div>
-    <h3>Train the system on a face</h3>
-    <div>
-      <p>Whose face is this?</p>
-      <input id="trainClass" type="text" name="">
+  <div id="app">
+    <button @click="switchTab('train')">Train</button>
+    <button @click="switchTab('detect')">Detect</button>
+    <button @click="switchTab('classlist')">Edit/Delete classes</button>
+    <button @click="switchTab('debug')">Debug</button>
+    <button @click="switchTab('info')">Info</button>
+    <div
+      class="train-tab"
+      v-if="tab === 'train'">
+      <h3>Train the system on a face</h3>
+      <div>
+        <p>Whose face is this?</p>
+        <input id="trainClass" type="text" name="">
+      </div>
+      <p>How many pictures will the system take for training?</p>
+      <div class="train-slider">
+        <input id="numTrainImages"
+          type="range"
+          min="1"
+          max="20"
+          value="5"
+          oninput="onRangeInput(this)">
+        <span id="trainImagesSpan"></span>
+      </div>
+      <p>
+        <small>Note: Even 1 image works great! Try it!</small>
+      </p>
+      <div>
+        <button onClick="trainClass()">Train class</button>
+        <button onClick="deleteClass()">Delete class</button>
+      </div>
     </div>
-    <p>How many pictures will the system take for training?</p>
-    <div class="train-slider">
-      <input id="numTrainImages"
-        type="range"
-        min="1"
-        max="20"
-        value="5"
-        oninput="onRangeInput(this)">
-      <span id="trainImagesSpan"></span>
+    <div
+      class="detect-tab"
+      v-if="tab === 'detect'">
+      <h3>Detect faces</h3>
+      <p>Current network: MTCNN</p>
+      <div>
+        <button onClick="singleShot()">Single shot</button>
+        <button onClick="realTime()">Real-time</button>
+      </div>
     </div>
-    <p>
-      <small>Note: Even 1 image works great! Try it!</small>
-    </p>
-    <div>
-      <button onClick="trainClass()">Train class</button>
-      <button onClick="deleteClass()">Delete class</button>
+    <div
+      class="classlist-tab"
+      v-if="tab === 'classlist'">
+      <p>Test</p>
+    </div>
+    <div
+      class="debug"
+      v-if="tab === 'debug'">
+      <h3>Debug</h3>
+      <button onClick="play()">Play/Resume</button>
+      <button onClick="stop()">Stop camera</button>
+    </div>
+    <div
+      class="info"
+      v-if="tab === 'info'">
+      <h3 id="info">Instructions</h3>
+      <ol>
+        <li>Allow the system to use your webcam.</li>
+        <li>Type in the name of the person you want the system to recognize.</li>
+        <li>Have that person's face fully visible in front of the camera and press "Train class". Note that the first time you activate your system there might have to wait for a few seconds. You'll know it started when boxes appear on your face.</li>
+        <li>You may now detect this person by pressing "Single shot" or "Real-time".</li>
+      </ol>
+      <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
+      <p>Note also that all this data is stored in your browser and is not accessible to me or other third parties. So go bonkers with it!</p>
     </div>
   </div>
-  <div>
-    <h3>Detect faces</h3>
-    <p>Current network: MTCNN</p>
-    <div>
-      <button onClick="singleShot()">Single shot</button>
-      <button onClick="realTime()">Real-time</button>
-    </div>
-  </div>
-  <div>
-    <h3>Debug</h3>
-    <button onClick="play()">Play/Resume</button>
-    <button onClick="stop()">Stop camera</button>
-  </div>
-  <h3 id="info">Instructions</h3>
-  <ol>
-    <li>Allow the system to use your webcam.</li>
-    <li>Type in the name of the person you want the system to recognize.</li>
-    <li>Have that person's face fully visible in front of the camera and press "Train class". Note that the first time you activate your system there might have to wait for a few seconds. You'll know it started when boxes appear on your face.</li>
-    <li>You may now detect this person by pressing "Single shot" or "Real-time".</li>
-  </ol>
-  <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
-  <p>Note also that all this data is stored in your browser and is not accessible to me or other third parties. So go bonkers with it!</p>
+
   <hr>
+
   <p><small>Made with 🔥 by <a href="https://beatobongco.com/UI-Kata/">Beato</a></small>.</p>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.2/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
 <script src="js/lib/face-api.js"></script>
 <!-- Order of loading js files is important since we have some shared globals like constants for now -->
 <script src="js/1_db.js"></script>
 <script src="js/2_main.js"></script>
 <script src="js/3_buttons.js"></script>
+<script src="js/4_vue_app.js"></script>
 </body>
 </html>
