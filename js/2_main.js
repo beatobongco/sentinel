@@ -86,22 +86,20 @@ async function run () {
 function doFaceDetection (detection, descriptor) {
   const {x, y, height: boxHeight} = detection.getBox()
   const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
-  if (!bestMatch) {
-    return
-  }
-  console.log('Detected: ' + bestMatch.className + '(' + bestMatch.distance + ')')
-  let text = 'Unknown'
-  let color = 'red'
+  let text, color = 'red'
 
-  if (bestMatch.distance < maxFaceDist) {
+  if (bestMatch && bestMatch.distance < maxFaceDist) {
     text = `${bestMatch.className} (${bestMatch.distance})`
     color = 'green'
+  } else {
+    text = 'Unknown'
+    color = 'red'
   }
 
   faceapi.drawText(
     canvasCtx,
     x,
-    y + boxHeight,
+    y + boxHeight + 3,
     text,
     Object.assign(faceapi.getDefaultDrawOptions(), { color: color, fontSize: 20 })
   )
@@ -149,8 +147,8 @@ async function forwardPass (mode, singleShot = false) {
         return
       }
 
-      faceapi.drawDetection('overlay', detection.forSize(width, height))
-      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color: 'red'})
+      faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
+      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
 
       if (mode === 'training') {
         train(descriptor)
