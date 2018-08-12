@@ -55,8 +55,10 @@ const db = {
     localforage.setItem('CLASSES', this.classes)
     localforage.removeItem(className)
   },
-  updateClass: function (oldClass, newClass) {
-    this.addClass(newClass, this.embeddings[oldClass])
+  updateClass: async function (oldClass, newClass) {
+    // FIXME: the await here seems inefficient if we can
+    // just get the embeddings from this object's state
+    this.addClass(newClass, await localforage.getItem(oldClass))
     this.deleteClass(oldClass)
   }
 }
