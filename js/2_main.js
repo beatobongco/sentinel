@@ -86,21 +86,24 @@ async function run () {
 function doFaceDetection (detection, descriptor) {
   const {x, y, height: boxHeight} = detection.getBox()
   const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
-  let text, color = 'red'
+  let className, color
 
   if (bestMatch && bestMatch.distance < maxFaceDist) {
-    text = `${bestMatch.className} (${bestMatch.distance})`
+    className = `${bestMatch.className} (${bestMatch.distance})`
     color = 'green'
   } else {
-    text = 'Unknown'
+    // If class is unkown, assign it a number and
+    // save the embeddings to the database
+    className = `Unknown #${myDB.getAutoIncrement()}`
     color = 'red'
+    myDB.addClass(className, [descriptor])
   }
 
   faceapi.drawText(
     canvasCtx,
     x,
     y + boxHeight + 3,
-    text,
+    className,
     Object.assign(faceapi.getDefaultDrawOptions(), { color: color, fontSize: 20 })
   )
 }

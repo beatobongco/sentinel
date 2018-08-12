@@ -19,17 +19,21 @@ const db = {
 
     this.initialized = true
     this.classes = []
-    this.embeddings = []
 
-    const classes = await localforage.getItem('CLASSES')
-    if (classes) {
-      this.classes = classes
-      this.embeddings = await Promise.all(
-        this.classes.map(
-          async className => ({className, descriptors: await localforage.getItem(className)})
-          ))
-      console.log('Loaded classes:', this.classes)
-    }
+    this.classes = await localforage.getItem('CLASSES') || []
+    this.embeddings = await Promise.all(
+      this.classes.map(
+        async className => ({className, descriptors: await localforage.getItem(className)})
+        ))
+    console.log('Loaded classes:', this.classes)
+
+    this.autoIncrement = await localforage.getItem('AUTOINCREMENT') || 0
+  },
+  getAutoIncrement: function () {
+    let tmp = this.autoIncrement
+    this.autoIncrement = tmp + 1
+    localforage.setItem('AUTOINCREMENT', this.autoIncrement)
+    return tmp
   },
   getClasses: function () {
     return this.classes
