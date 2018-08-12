@@ -134,6 +134,8 @@ async function forwardPass (mode, singleShot = false) {
     return false
   }
 
+  $('#status').text('Detecting...')
+
   const {width, height} = faceapi.getMediaDimensions(videoEl)
 
   // I've tried removing this, it seems explicit setting of
@@ -164,7 +166,7 @@ async function forwardPass (mode, singleShot = false) {
         doFaceDetection(detection, descriptor)
         if (singleShot) {
           videoEl.pause()
-          $('#status').text('Recording paused (single shot mode)')
+          $('#status').text('Detection paused (single shot mode)')
         }
       }
     })
