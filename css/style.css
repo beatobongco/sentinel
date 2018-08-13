@@ -3,6 +3,9 @@ body {
   font-family: 'Roboto', sans-serif;
   max-width: 700px;
 }
+#app {
+  min-height: 350px;
+}
 video {
   width: 640px;
   height: 480px;
