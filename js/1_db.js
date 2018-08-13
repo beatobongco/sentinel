@@ -1,12 +1,10 @@
-/*
-  An object that holds state using a basic OLOO pattern.
-  This is preferrable to keeping separate global state variables
-  because it's under one namespace (db or whatever it's initialized to be).
-
-  I guess I kind of get this from YDKJS and Vue's recommendation
-  of keeping state in bus/Vue-like object.
-*/
 const db = {
+  state: {
+    autoIncrement: null,
+    initialized: false,
+    classes: [],
+    embeddings: []
+  },
   init: async function () {
     // initializes current state from localforage
     // we need this to prevent gross code of too many awaits
@@ -17,42 +15,40 @@ const db = {
       return
     }
 
-    this.initialized = true
-    this.classes = []
-
-    this.classes = await localforage.getItem('CLASSES') || []
-    this.embeddings = await Promise.all(
-      this.classes.map(
+    this.state.initialized = true
+    this.state.classes = await localforage.getItem('CLASSES') || []
+    this.state.embeddings = await Promise.all(
+      this.state.classes.map(
         async className => ({className, descriptors: await localforage.getItem(className)})
         ))
-    console.log('Loaded classes:', this.classes)
+    console.log('Loaded classes:', this.state.classes)
 
-    this.autoIncrement = await localforage.getItem('AUTOINCREMENT') || 0
+    this.state.autoIncrement = await localforage.getItem('AUTOINCREMENT') || 0
   },
   getAutoIncrement: function () {
-    let tmp = this.autoIncrement
-    this.autoIncrement = tmp + 1
-    localforage.setItem('AUTOINCREMENT', this.autoIncrement)
+    let tmp = this.state.autoIncrement
+    this.state.autoIncrement = tmp + 1
+    localforage.setItem('AUTOINCREMENT', this.state.autoIncrement)
     return tmp
   },
   getClasses: function () {
-    return this.classes
+    return this.state.classes
   },
   getEmbeddings: function () {
-    return this.embeddings
+    return this.state.embeddings
   },
   addClass: function (className, descriptors) {
-    this.embeddings = [...this.embeddings, {className, descriptors}]
-    this.classes = [...this.classes, className]
+    this.state.embeddings = [...this.state.embeddings, {className, descriptors}]
+    this.state.classes = [...this.state.classes, className]
 
-    localforage.setItem('CLASSES', this.classes)
+    localforage.setItem('CLASSES', this.state.classes)
     localforage.setItem(className, descriptors)
   },
   deleteClass: function (className) {
-    this.classes = immutableRemove(this.classes, this.classes.indexOf(className))
-    this.embeddings = immutableRemove(this.embeddings, this.embeddings.findIndex((el) => el.className === className))
+    this.state.classes = immutableRemove(this.state.classes, this.state.classes.indexOf(className))
+    this.state.embeddings = immutableRemove(this.state.embeddings, this.state.embeddings.findIndex((el) => el.className === className))
 
-    localforage.setItem('CLASSES', this.classes)
+    localforage.setItem('CLASSES', this.state.classes)
     localforage.removeItem(className)
   },
   updateClass: async function (oldClass, newClass) {

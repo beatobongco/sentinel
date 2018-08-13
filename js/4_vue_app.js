@@ -3,13 +3,13 @@
 
   TODO: most of the app will eventually be refactored in Vue.
 */
-let app = new Vue({
+const app = new Vue({
   el: '#app',
   data: {
     tab: 'info',
     // We don't actually use this state for manipulation
     // just so we can use it for rendering UI
-    db: myDB
+    sharedState: myDB.state
   },
   methods: {
     switchTab: function (tabName) {
@@ -41,6 +41,7 @@ Vue.component('face-class', {
     },
     updateClass: function () {
       myDB.updateClass(this.cls, this.faceName)
+      this.toggleEdit()
     }
   },
   template: `
