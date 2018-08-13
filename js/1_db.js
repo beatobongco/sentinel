@@ -54,7 +54,8 @@ const db = {
   updateClass: async function (oldClass, newClass) {
     // FIXME: the await here seems inefficient if we can
     // just get the embeddings from this object's state
-    this.addClass(newClass, ...await localforage.getItem(oldClass))
+    const tmp = await localforage.getItem(oldClass)
+    this.addClass(newClass, tmp.descriptors, tmp.image)
     this.deleteClass(oldClass)
   }
 }
