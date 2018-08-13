@@ -7,8 +7,6 @@ const app = new Vue({
   el: '#app',
   data: {
     tab: 'info',
-    // We don't actually use this state for manipulation
-    // just so we can use it for rendering UI
     sharedState: myDB.state
   },
   methods: {
@@ -26,6 +24,13 @@ Vue.component('face-class', {
       faceName: this.cls
     }
   },
+  watch: {
+    isEditing (val) {
+      if (val) {
+        this.$nextTick(() => {this.$refs.inputRef.select()})
+      }
+    }
+  },
   // This is buggy since every change of state triggers
   // updated: function () {
   //   if (this.isEditing) {
@@ -33,36 +38,40 @@ Vue.component('face-class', {
   //   }
   // },
   methods: {
-    toggleEdit: function () {
+    toggleEdit () {
       this.isEditing = !this.isEditing
     },
-    deleteClass: function () {
+    deleteClass () {
       myDB.deleteClass(this.faceName)
     },
-    updateClass: function () {
+    updateClass () {
       myDB.updateClass(this.cls, this.faceName)
+      this.toggleEdit()
+    },
+    cancel () {
+      this.faceName = this.cls
       this.toggleEdit()
     }
   },
   template: `
-    <tr>
-      <td>
+    <div class="face-class">
+      <div class="class-name">
         <input
           v-if="isEditing"
           ref="inputRef"
           v-model="faceName"
           type="text" />
         <span v-else>{{faceName}}</span>
-      </td>
-      <td v-if="isEditing">
-        <button @click="updateClass">Save</button>
-      </td>
-      <td>
-        <button @click="toggleEdit">
-          <span v-if="isEditing">Cancel</span>
-          <span v-else>Edit</span>
-        </button>
-      </td>
-      <td><button @click="deleteClass">Delete</button></td>
-    </tr>`
+      </div>
+      <div class="controls">
+        <span v-if="isEditing">
+          <button @click="updateClass">Save</button>
+          <button @click="cancel">Cancel</button>
+        </span>
+        <span v-else>
+          <button @click="toggleEdit">Edit</button>
+          <button @click="deleteClass">Delete</button>
+        </span>
+      </div>
+    </div>`
 })

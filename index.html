@@ -44,10 +44,12 @@
     <canvas id="overlay"></canvas>
   </div>
   <div id="app">
-    <button @click="switchTab('train')">Train</button>
-    <button @click="switchTab('detect')">Detect</button>
-    <button @click="switchTab('classlist')">Edit/Delete classes</button>
-    <button @click="switchTab('info')">Info</button>
+    <div class="tabs">
+      <button @click="switchTab('train')">Train</button>
+      <button @click="switchTab('detect')">Detect</button>
+      <button @click="switchTab('classlist')">Edit/Delete classes</button>
+      <button @click="switchTab('info')">Info</button>
+    </div>
     <div
       class="train-tab"
       v-if="tab === 'train'">
@@ -88,14 +90,11 @@
       class="classlist-tab"
       v-if="tab === 'classlist'">
       <h3>Edit/Delete classes</h3>
-      <table>
-        <tbody>
-          <face-class
-            v-for="cls in sharedState.classes"
-            :cls="cls" />
-
-        </tbody>
-      </table>
+      <div class="face-class-container">
+        <face-class
+          v-for="cls in sharedState.classes"
+          :cls="cls" />
+      </div>
     </div>
     <div
       class="info"

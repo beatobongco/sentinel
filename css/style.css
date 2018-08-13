@@ -26,7 +26,15 @@ video {
   align-items: center;
   margin-bottom: 1rem;
 }
-
 .train-slider span {
   margin-left: .5rem;
+}
+.face-class-container {
+
+}
+.face-class {
+  display: flex;
+}
+.face-class > .class-name {
+  flex: 1;
 }
