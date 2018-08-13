@@ -9,7 +9,8 @@ const app = new Vue({
   el: '#app',
   data: {
     tab: 'info',
-    sharedState: myDB.state
+    sharedState: myDB.state,
+    numTrainImages: 5
   },
   methods: {
     switchTab (tabName) {

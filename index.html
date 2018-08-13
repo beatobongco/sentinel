@@ -60,13 +60,13 @@
       </div>
       <p>How many pictures will the system take for training?</p>
       <div class="train-slider">
-        <input id="numTrainImages"
+        <input
+          id="numTrainImages"
           type="range"
           min="1"
-          max="20"
-          value="5"
-          oninput="onRangeInput(this)">
-        <span id="trainImagesSpan"></span>
+          max="10"
+          v-model="numTrainImages">
+        <span>{{numTrainImages}}</span>
       </div>
       <p>
         <small>Note: Even 1 image works great! Try it!</small>
