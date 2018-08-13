@@ -1,6 +1,8 @@
 /*
   Vue app for controlling state of certain parts of the app.
 
+  For function definition shorthand: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
+
   TODO: most of the app will eventually be refactored in Vue.
 */
 const app = new Vue({
@@ -10,7 +12,7 @@ const app = new Vue({
     sharedState: myDB.state
   },
   methods: {
-    switchTab: function (tabName) {
+    switchTab (tabName) {
       this.tab = tabName
     }
   }
@@ -18,7 +20,7 @@ const app = new Vue({
 
 Vue.component('face-class', {
   props: ['cls'],
-  data: function () {
+  data () {
     return {
       isEditing: false,
       faceName: this.cls
