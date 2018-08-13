@@ -33,12 +33,6 @@ Vue.component('face-class', {
       }
     }
   },
-  // This is buggy since every change of state triggers
-  // updated: function () {
-  //   if (this.isEditing) {
-  //     this.$refs.inputRef.select()
-  //   }
-  // },
   methods: {
     toggleEdit () {
       this.isEditing = !this.isEditing
