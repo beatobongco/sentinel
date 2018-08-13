@@ -1,26 +1,29 @@
-function _play () {
-  canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
-  videoEl.play()
-}
+// function _play () {
+//   canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+//   videoEl.play()
+// }
 
 async function _play_then_infer (mode, singleShot = false) {
-  _play()
+  if (videoEl.paused) {
+    videoEl.play()
+  }
 
   await new Promise((resolve) => {
     setTimeout(resolve, 100)
   })
-  console.log(mode, singleShot)
+
+  shouldInfer = true
   forwardPass(mode, singleShot)
 }
 
-function play () {
-  $('#status').text('Recording resumed')
-  _play()
-}
+// function play () {
+//   $('#status').text('Recording resumed')
+//   _play()
+// }
 
 function stop () {
-  $('#status').text('Recording paused')
-  videoEl.pause()
+  $('#status').text('Detection paused')
+  shouldInfer = false
 }
 
 function deleteClass () {

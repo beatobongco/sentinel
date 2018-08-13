@@ -93,7 +93,8 @@
       <div class="face-class-container">
         <face-class
           v-for="cls in sharedState.classes"
-          :cls="cls" />
+          :cls="cls"
+          :key="cls" />
       </div>
     </div>
     <div

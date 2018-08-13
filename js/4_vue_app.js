@@ -39,7 +39,9 @@ Vue.component('face-class', {
       this.isEditing = !this.isEditing
     },
     deleteClass () {
-      myDB.deleteClass(this.faceName)
+      if (confirm(`Are you sure you want to delete class ${this.faceName}?`)) {
+        myDB.deleteClass(this.faceName)
+      }
     },
     updateClass () {
       myDB.updateClass(this.cls, this.faceName)

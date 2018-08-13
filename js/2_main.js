@@ -13,8 +13,9 @@ const mtcnnParams = {
   */
   minFaceSize: 200
 }
-let myDB = Object.create(db)
+const myDB = Object.create(db)
 let modelLoaded = false
+let shouldInfer = false
 let forwardTimes = []
 
 // a temporary container for our training data
@@ -80,6 +81,9 @@ async function run () {
   // setup video feed
   navigator.mediaDevices.getUserMedia({video: true}).
     then(stream => videoEl.srcObject = stream)
+
+  // Take a single shot
+  // setTimeout(() => { forwardPass('inference', true) }, 100)
 }
 
 function doFaceDetection (detection, descriptor) {
@@ -121,7 +125,8 @@ function train (descriptor, numTrainImages = app.numTrainImages) {
 
     // cleanup by pausing the video feed
     // and setting training data to an empty array
-    videoEl.pause()
+    // videoEl.pause()
+    shouldInfer = false
     trainingData = []
     $('#status').text('Done training!')
   }
@@ -132,7 +137,9 @@ async function forwardPass (mode, singleShot = false) {
     return false
   }
 
-  $('#status').text('Detecting...')
+  if (mode === 'inference') {
+    $('#status').text('Detecting...')
+  }
 
   const {width, height} = faceapi.getMediaDimensions(videoEl)
 
@@ -172,8 +179,11 @@ async function forwardPass (mode, singleShot = false) {
   catch (err) {
     console.log(err)
   }
-
-  setTimeout(() => forwardPass(mode, singleShot))
+  if (shouldInfer) {
+    setTimeout(() => forwardPass(mode, singleShot))
+  } else {
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+  }
 }
 
 $(document).ready(run)
