@@ -20,11 +20,11 @@ const app = new Vue({
 })
 
 Vue.component('face-class', {
-  props: ['cls'],
+  props: ['embs'],
   data () {
     return {
       isEditing: false,
-      faceName: this.cls
+      faceName: this.embs.className
     }
   },
   watch: {
@@ -44,16 +44,19 @@ Vue.component('face-class', {
       }
     },
     updateClass () {
-      myDB.updateClass(this.cls, this.faceName)
+      myDB.updateClass(this.embs.className, this.faceName)
       this.toggleEdit()
     },
     cancel () {
-      this.faceName = this.cls
+      this.faceName = this.embs.className
       this.toggleEdit()
     }
   },
   template: `
     <div class="face-class">
+      <div class="class-image">
+        <img :src="embs.image">
+      </div>
       <div class="class-name">
         <input
           v-if="isEditing"

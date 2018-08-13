@@ -43,6 +43,9 @@
       id="inputVideo"></video>
     <canvas id="overlay"></canvas>
   </div>
+  <div class="detector">
+    <canvas id="detectorCnv" width="50px" height="50px"></canvas>
+  </div>
   <div id="app">
     <div class="tabs">
       <button @click="switchTab('train')">Train</button>
@@ -95,9 +98,9 @@
       <h3>Edit/Delete classes</h3>
       <div class="face-class-container">
         <face-class
-          v-for="cls in sharedState.classes"
-          :cls="cls"
-          :key="cls" />
+          v-for="embs in sharedState.embeddings"
+          :embs="embs"
+          :key="embs.className" />
       </div>
     </div>
     <div

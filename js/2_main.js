@@ -1,6 +1,8 @@
 const videoEl = document.querySelector('#inputVideo')
 const canvas = document.getElementById('overlay')
 const canvasCtx = canvas.getContext('2d')
+const detectorCnv = document.getElementById('detectorCnv')
+const detectorCtx = detectorCnv.getContext('2d')
 const maxFaceDist = 0.6
 const minConfidence = 0.9
 const unknownPrefix = 'Unknown #'
@@ -87,7 +89,7 @@ async function run () {
 }
 
 function doFaceDetection (detection, descriptor) {
-  const {x, y, height: boxHeight} = detection.getBox()
+  const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
   const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
   let className, color
 
@@ -103,7 +105,10 @@ function doFaceDetection (detection, descriptor) {
     // save the embeddings to the database
     className = unknownPrefix + myDB.getAutoIncrement()
     color = 'red'
-    myDB.addClass(className, [descriptor])
+    detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
+                          0, 0, detectorCnv.width, detectorCnv.height)
+
+    myDB.addClass(className, [descriptor], detectorCnv.toDataURL())
   }
 
   faceapi.drawText(

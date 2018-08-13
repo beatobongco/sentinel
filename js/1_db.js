@@ -19,10 +19,10 @@ const db = {
     this.state.classes = await localforage.getItem('CLASSES') || []
     this.state.embeddings = await Promise.all(
       this.state.classes.map(
-        async className => ({className, descriptors: await localforage.getItem(className)})
+        async className => ({className, ...await localforage.getItem(className)})
         ))
     console.log('Loaded classes:', this.state.classes)
-
+    console.log('Loaded embeddings:', this.state.embeddings)
     this.state.autoIncrement = await localforage.getItem('AUTOINCREMENT') || 0
   },
   getAutoIncrement: function () {
@@ -37,12 +37,12 @@ const db = {
   getEmbeddings: function () {
     return this.state.embeddings
   },
-  addClass: function (className, descriptors) {
-    this.state.embeddings = [...this.state.embeddings, {className, descriptors}]
+  addClass: function (className, descriptors, image) {
+    this.state.embeddings = [...this.state.embeddings, {className, descriptors, image}]
     this.state.classes = [...this.state.classes, className]
 
     localforage.setItem('CLASSES', this.state.classes)
-    localforage.setItem(className, descriptors)
+    localforage.setItem(className, {descriptors, image})
   },
   deleteClass: function (className) {
     this.state.classes = immutableRemove(this.state.classes, this.state.classes.indexOf(className))
@@ -54,7 +54,7 @@ const db = {
   updateClass: async function (oldClass, newClass) {
     // FIXME: the await here seems inefficient if we can
     // just get the embeddings from this object's state
-    this.addClass(newClass, await localforage.getItem(oldClass))
+    this.addClass(newClass, ...await localforage.getItem(oldClass))
     this.deleteClass(oldClass)
   }
 }

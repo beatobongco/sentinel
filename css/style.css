@@ -24,6 +24,9 @@ video {
   max-width: 100%;
   z-index: 100;
 }
+#detectorCnv {
+  border: 1px solid black;
+}
 .train-slider {
   display: flex;
   align-items: center;
@@ -38,6 +41,10 @@ video {
 .face-class {
   margin: .5rem 0;
   display: flex;
+  align-items: center;
+}
+.face-class > .class-image {
+  margin-right: 1rem;
 }
 .face-class > .class-name {
   flex: 1;
