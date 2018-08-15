@@ -4,7 +4,7 @@ const canvasCtx = canvas.getContext('2d')
 const detectorCnv = document.getElementById('detectorCnv')
 const detectorCtx = detectorCnv.getContext('2d')
 const maxFaceDist = 0.6
-const minConfidence = 0.9
+const minConfidence = 0.99
 const unknownPrefix = 'Unknown #'
 const mtcnnParams = {
   /*
@@ -101,6 +101,7 @@ function doFaceDetection (detection, descriptor) {
       color = 'green'
     }
   } else {
+    console.log('Tagged as unknown because dist was', bestMatch.distance, 'to best match', bestMatch.className)
     // If class is unknown, assign it a number and
     // save the embeddings to the database
     className = unknownPrefix + myDB.getAutoIncrement()
