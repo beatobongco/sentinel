@@ -13,7 +13,7 @@ const mtcnnParams = {
       100 gets me ~20fps
       200 gets me ~30-40fps
   */
-  minFaceSize: 200
+  minFaceSize: 100
 }
 const myDB = Object.create(db)
 let modelLoaded = false
