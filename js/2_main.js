@@ -82,13 +82,13 @@ async function run () {
 
   // setup video feed
   navigator.mediaDevices.getUserMedia({video: true}).
-    then(stream => videoEl.srcObject = stream)
-
-  // Take a single shot
-  // setTimeout(() => { forwardPass('inference', true) }, 100)
+    then(stream => {
+      videoEl.srcObject = stream
+    })
 }
 
 function doFaceDetection (detection, descriptor) {
+  $('#status').text('Detecting...')
   const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
   const bestMatch = getBestMatch(myDB.getEmbeddings(), descriptor)
   let className, color
@@ -142,10 +142,6 @@ async function forwardPass (mode, singleShot = false) {
     return false
   }
 
-  if (mode === 'inference') {
-    $('#status').text('Detecting...')
-  }
-
   const {width, height} = faceapi.getMediaDimensions(videoEl)
 
   // I've tried removing this, it seems explicit setting of
@@ -159,8 +155,19 @@ async function forwardPass (mode, singleShot = false) {
   // https://github.com/justadudewhohacks/face-api.js/issues/66
   // If we dont have this block, inferencing of training will stop
   try {
+    if (mode === 'warmup') {
+      $('#status').text('Warming up... Please wait just a little bit.')
+    }
+
     const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
     updateTimeStats(Date.now() - ts)
+
+    if (mode === 'warmup') {
+      $('#status').text('Ready to go!')
+      $(videoEl).css('visibility', 'visible')
+      fullFaceDescriptions.forEach(console.log)
+      return
+    }
 
     fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
       if (detection.score < minConfidence) {

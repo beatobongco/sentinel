@@ -47,3 +47,7 @@ function trainClass() {
 function onRangeInput(e) {
   $('#trainImagesSpan').text(e.value)
 }
+
+videoEl.addEventListener('canplay', () => {
+  forwardPass('warmup')
+})
