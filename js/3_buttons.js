@@ -18,6 +18,10 @@ async function _play_then_infer (mode, singleShot = false) {
 
 function stop () {
   shouldInfer = false
+  if (videoEl.paused) {
+    videoEl.play()
+  }
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
   setTimeout(() => {
     $('#status').text('Detection paused')
   }, 100)
@@ -45,6 +49,10 @@ function onRangeInput(e) {
   $('#trainImagesSpan').text(e.value)
 }
 
+let warmedUp = false
 videoEl.addEventListener('canplay', () => {
-  forwardPass('warmup')
+  if (!warmedUp) {
+    forwardPass('warmup')
+    warmedUp = true
+  }
 })

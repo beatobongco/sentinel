@@ -157,6 +157,7 @@ async function forwardPass (mode, singleShot = false) {
   // If we dont have this block, inferencing of training will stop
   try {
     if (mode === 'warmup') {
+      console.log('Warming up')
       $('#status').text('Warming up... Please wait just a little bit.')
     }
 
@@ -166,7 +167,6 @@ async function forwardPass (mode, singleShot = false) {
     if (mode === 'warmup') {
       $('#status').text('Ready to go!')
       $(videoEl).css('visibility', 'visible')
-      fullFaceDescriptions.forEach(console.log)
       return
     }
 
