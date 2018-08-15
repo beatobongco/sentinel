@@ -20,10 +20,10 @@ video {
   position: relative;
 }
 #overlay {
+  border: 1px solid black;
   position: absolute;
   max-width: 100%;
   z-index: 100;
-  border: 1px solid black;
 }
 #detectorCnv {
   border: 1px solid black;

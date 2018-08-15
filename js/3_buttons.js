@@ -16,14 +16,11 @@ async function _play_then_infer (mode, singleShot = false) {
   forwardPass(mode, singleShot)
 }
 
-// function play () {
-//   $('#status').text('Recording resumed')
-//   _play()
-// }
-
 function stop () {
-  $('#status').text('Detection paused')
   shouldInfer = false
+  setTimeout(() => {
+    $('#status').text('Detection paused')
+  }, 100)
 }
 
 function deleteClass () {
