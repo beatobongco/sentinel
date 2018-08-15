@@ -16,66 +16,72 @@
   <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
-  <h1>Sentinel</h1>
-  <div>
-    <p>Proof of concept quick facial recognition timekeeping system completely client-side in the browser. <a href="#info"><small>How do I use this?</small></a></p>
+  <div class="title">
+    <h1>Sentinel</h1>
+    <p>Proof of concept quick facial recognition timekeeping system completely client-side in the browser. </p>
+    <p>Please be patient while the system loads. You'll know it's done when you can see your webcam's feed. <a href="#info">How do I use this?</a></p>
+  </div>
+  <div class="initial-hide">
+    <div>
+      <p>
+        <small>
+          <span>Estimated Fps:</span>
+          <span id="fps"></span>
+          <span>|</span>
+        </small>
+        <small>
+          <span>Inference time in ms:</span>
+          <span id="time"></span>
+        </small>
+      </p>
+    </div>
+    <div class="camera">
+      <video
+        autoplay
+        muted
+        id="inputVideo"></video>
+      <canvas id="overlay"></canvas>
+    </div>
+    <div class="detector">
+      <canvas id="detectorCnv" width="50px" height="50px"></canvas>
+    </div>
   </div>
   <div>
     <p>Status: <strong id="status">Loading models... (8MB)</strong></p>
   </div>
-  <div>
-    <p>
-      <small>
-        <span>Estimated Fps:</span>
-        <span id="fps"></span>
-        <span>|</span>
-      </small>
-      <small>
-        <span>Inference time in ms:</span>
-        <span id="time"></span>
-      </small>
-    </p>
-  </div>
-  <div class="camera">
-    <video
-      autoplay
-      muted
-      id="inputVideo"></video>
-    <canvas id="overlay"></canvas>
-  </div>
-  <div class="detector">
-    <canvas id="detectorCnv" width="50px" height="50px"></canvas>
-  </div>
   <div id="app">
     <div class="tabs">
-      <button @click="switchTab('train')">Train</button>
-      <button @click="switchTab('detect')">Detect</button>
-      <button @click="switchTab('classlist')">Edit/Delete classes</button>
-      <button @click="switchTab('info')">Info</button>
+      <button @click="switchTab('train')">Training</button>
+      <button @click="switchTab('detect')" :disabled="isTraining">Detection</button>
+      <button @click="switchTab('classlist')" :disabled="isTraining">Edit/Delete classes</button>
+      <button @click="switchTab('info')" :disabled="isTraining">Instructions</button>
     </div>
     <div
       class="train-tab"
       v-if="tab === 'train'">
       <h3>Train the system on a face</h3>
-      <div>
-        <p>Whose face is this?</p>
-        <input id="trainClass" type="text" name="">
+      <div v-if="!isTraining">
+        <p>How many pictures will the system take for training?</p>
+        <div class="train-slider">
+          <input
+            id="numTrainImages"
+            type="range"
+            min="1"
+            max="10"
+            v-model="numTrainImages">
+          <span>{{numTrainImages}}</span>
+        </div>
+        <p>
+          <small>Note: Even 1 image works great! Try it!</small>
+        </p>
+        <div>
+          <p>Whose face is this?</p>
+          <input id="trainClass" type="text" name=""><button onClick="trainClass()">Train class</button>
+        </div>
       </div>
-      <p>How many pictures will the system take for training?</p>
-      <div class="train-slider">
-        <input
-          id="numTrainImages"
-          type="range"
-          min="1"
-          max="10"
-          v-model="numTrainImages">
-        <span>{{numTrainImages}}</span>
-      </div>
-      <p>
-        <small>Note: Even 1 image works great! Try it!</small>
-      </p>
-      <div>
-        <button onClick="trainClass()">Train class</button>
+      <div v-else>
+        <p>Try different poses!</p>
+        <button onClick="forwardPass('training')">Train class</button>
       </div>
     </div>
     <div
@@ -106,9 +112,9 @@
       <h3 id="info">Instructions</h3>
       <ol>
         <li>Allow the system to use your webcam.</li>
-        <li>Press "Train". Type in the name of the person you want the system to recognize.</li>
-        <li>Have that person's face fully visible in front of the camera and press "Train class". Note that the first time you activate your system there might have to wait for a few seconds. You'll know it has started when boxes appear on your face.</li>
-        <li>You may now run detect by pressing "Detect" then pressing "Single shot" or "Real-time".</li>
+        <li>Go to the "Training" tab. Type in the name of the person you want the system to recognize. </li>
+        <li>While moving your head around press "Train class".</li>
+        <li>Go to the "Detection" tab. Press "Single shot" or "Real-time" to play around with face detection.</li>
       </ol>
       <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
       <p>Note also that all this data is stored in your browser and is not accessible to me or other third parties. So go bonkers with it!</p>

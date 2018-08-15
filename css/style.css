@@ -3,11 +3,13 @@ body {
   font-family: 'Roboto', sans-serif;
   max-width: 700px;
 }
+.initial-hide {
+  display: none;
+}
 #app {
   min-height: 350px;
 }
 video {
-  visibility: hidden;
   width: 640px;
   height: 480px;
   max-width: 100%;
@@ -18,6 +20,9 @@ video {
   align-items: center;
   margin: 1rem 0;
   position: relative;
+}
+.detector {
+  margin: 1rem 0;
 }
 #overlay {
   border: 1px solid black;
@@ -36,8 +41,8 @@ video {
 .train-slider span {
   margin-left: .5rem;
 }
-.face-class-container {
-
+#trainClass {
+  margin-right: .5rem;
 }
 .face-class {
   margin: .5rem 0;

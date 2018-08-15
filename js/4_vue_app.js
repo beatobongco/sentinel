@@ -8,6 +8,7 @@
 const app = new Vue({
   el: '#app',
   data: {
+    isTraining: false,
     tab: 'info',
     sharedState: myDB.state,
     numTrainImages: 5

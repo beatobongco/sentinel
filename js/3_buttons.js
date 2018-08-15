@@ -1,8 +1,3 @@
-// function _play () {
-//   canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
-//   videoEl.play()
-// }
-
 async function _play_then_infer (mode, singleShot = false) {
   if (videoEl.paused) {
     videoEl.play()
@@ -41,12 +36,10 @@ function realTime () {
   _play_then_infer('inference')
 }
 
-function trainClass() {
+function trainClass () {
+  app.isTraining = true
+  trainState.setClassName($('#trainClass').val())
   _play_then_infer('training')
-}
-
-function onRangeInput(e) {
-  $('#trainImagesSpan').text(e.value)
 }
 
 let warmedUp = false

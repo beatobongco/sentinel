@@ -22,7 +22,27 @@ let forwardTimes = []
 
 // a temporary container for our training data
 // this should always be cleared after a new class is added
-let trainingData = []
+const trainState = {
+  state: {
+    data: [],
+    image: null,
+    className: null
+  },
+  emptyState () {
+    this.state.data = []
+    this.state.image = null
+    this.state.className = null
+  },
+  setImage (img) {
+    this.state.image = img
+  },
+  setClassName (n) {
+    this.state.className = n
+  },
+  appendData (d) {
+    this.state.data.push(d)
+  }
+}
 
 function updateTimeStats(timeInMs) {
   forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
@@ -74,12 +94,6 @@ async function run () {
 
   await myDB.init()
 
-  if (myDB.getClasses().length === 0) {
-    $('#status').text('No classes in database. Press "Train" to get started!')
-  } else {
-    $('#status').text('Data loaded!')
-  }
-
   // setup video feed
   navigator.mediaDevices.getUserMedia({video: true}).
     then(stream => {
@@ -121,19 +135,29 @@ function doFaceDetection (detection, descriptor) {
   )
 }
 
-function train (descriptor, numTrainImages = app.numTrainImages) {
-  trainingData.push(descriptor)
-  const cls = $('#trainClass').val()
-  $('#status').text(`Getting embeddings for class: ${cls}... ${trainingData.length} / ${numTrainImages}`)
-  if (trainingData.length >= numTrainImages) {
+function train (detection, descriptor, numTrainImages = app.numTrainImages) {
+  let {data, className, image} = trainState.state
+
+  $('#status').text(`Getting embeddings for class: ${className}... ${data.length} / ${numTrainImages}`)
+  trainState.appendData(descriptor)
+
+  const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
+  detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
+                        0, 0, detectorCnv.width, detectorCnv.height)
+
+  if (data.length === 1) {
+    trainState.setImage(detectorCnv.toDataURL())
+  }
+
+  if (data.length >= numTrainImages) {
     // Save the embeddings to localstorage
-    myDB.addClass(cls, trainingData)
+    myDB.addClass(className, data, image)
 
     // cleanup by pausing the video feed
     // and setting training data to an empty array
     // videoEl.pause()
-    shouldInfer = false
-    trainingData = []
+    app.isTraining = false
+    trainState.emptyState()
     $('#status').text('Done training!')
   }
 }
@@ -166,7 +190,7 @@ async function forwardPass (mode, singleShot = false) {
 
     if (mode === 'warmup') {
       $('#status').text('Ready to go!')
-      $(videoEl).css('visibility', 'visible')
+      $('.initial-hide').show()
       return
     }
 
@@ -179,7 +203,7 @@ async function forwardPass (mode, singleShot = false) {
       faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
 
       if (mode === 'training') {
-        train(descriptor)
+        train(detection, descriptor)
       } else if (mode === 'inference') {
         doFaceDetection(detection, descriptor)
         if (singleShot) {
