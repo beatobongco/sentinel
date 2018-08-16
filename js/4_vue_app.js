@@ -50,7 +50,7 @@ const app = new Vue({
         console.log(err)
       }
     },
-    drawDetection: function (detection, landmarks) {
+    drawDetection (detection, landmarks) {
       const {width, height} = faceapi.getMediaDimensions(videoEl)
 
       canvas.width = width
@@ -62,12 +62,20 @@ const app = new Vue({
       const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
       detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
                             0, 0, detectorCnv.width, detectorCnv.height)
+    },
+    computeMeanDistance (descriptors, query) {
+      return faceapi.round(
+        descriptors
+          .map(d => faceapi.euclideanDistance(d, query))
+          .reduce((d1, d2) => d1 + d2, 0) / (descriptors.length || 1)
+        )
     }
   }
 })
 
 Vue.component('training-app', {
-  props: ['setTrainingFlag', 'isTraining', 'drawDetection', 'forwardPass'],
+  props: ['setTrainingFlag', 'isTraining', 'drawDetection', 'forwardPass',
+          'computeMeanDistance'],
   data () {
     // It's fine for this component to have this much state because it's just temporary.
     // This state is cleared after it is sent to db after successful training.
@@ -93,11 +101,22 @@ Vue.component('training-app', {
           return
         }
 
+        if (this.embeddings.length > 1) {
+          const meanDistance = this.computeMeanDistance(this.embeddings, descriptor)
+          // Don't save images too close to what we already have
+          if (meanDistance < maxFaceDist) {
+            console.log('REJECT. Image distance:', meanDistance)
+            return
+          }
+          console.log('ACCEPT. Image distance:', meanDistance)
+        }
+
         this.drawDetection(detection, landmarks)
 
         this.embeddings.push(descriptor)
         // We save the first image taken as the display picture
         if (this.embeddings.length === 1) {
+          // TODO this is not functional
           this.classImage = detectorCnv.toDataURL()
         }
       })

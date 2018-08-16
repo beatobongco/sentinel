@@ -51,6 +51,14 @@ function updateTimeStats(timeInMs) {
   $('#fps').text(`${faceapi.round(1000 / avgTimeInMs)}`)
 }
 
+function computeMeanDistance(descriptors, queryDescriptor) {
+  return faceapi.round(
+    descriptors
+      .map(d => faceapi.euclideanDistance(d, queryDescriptor))
+      .reduce((d1, d2) => d1 + d2, 0) / (descriptors.length || 1)
+    )
+}
+
 function getBestMatch(descriptorsByClass, queryDescriptor) {
   /*
     Args:
@@ -60,14 +68,6 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
     Returns:
       Object {className, distance}
   */
-  function computeMeanDistance(descriptors) {
-    return faceapi.round(
-      descriptors
-        .map(d => faceapi.euclideanDistance(d, queryDescriptor))
-        .reduce((d1, d2) => d1 + d2, 0) / (descriptors.length || 1)
-      )
-  }
-
   if (descriptorsByClass.length === 0) {
     $('#status').text('No classes. Train some first!')
     return
@@ -76,7 +76,7 @@ function getBestMatch(descriptorsByClass, queryDescriptor) {
   return descriptorsByClass
     .map(
       ({descriptors, className}) => ({
-        distance: computeMeanDistance(descriptors),
+        distance: computeMeanDistance(descriptors, queryDescriptor),
         className
       })
     )
