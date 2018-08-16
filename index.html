@@ -58,6 +58,8 @@
     </div>
     <training-app
       v-if="tab === 'train'"
+      :draw-detection="drawDetection"
+      :forward-pass="forwardPass"
       :set-training-flag="setTrainingFlag"
       :is-training="isTraining"></training-app>
     <div
@@ -79,7 +81,7 @@
         <face-class
           v-for="embs in sharedState.embeddings"
           :embs="embs"
-          :key="embs.className" />
+          :key="embs.className"></face-class>
       </div>
     </div>
     <div

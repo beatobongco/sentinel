@@ -21,12 +21,47 @@ const app = new Vue({
     },
     getTrainingFlag () {
       return this.isTraining
+    },
+    forwardPass: async function () {
+      // Performs a forward pass on the network with the video element as input
+      if (videoEl.paused || videoEl.ended || !modelLoaded) {
+        return false
+      }
+
+      const {width, height} = faceapi.getMediaDimensions(videoEl)
+
+      // I've tried removing this, it seems explicit setting of
+      // canvas width and height is required to draw properly
+      canvas.width = width
+      canvas.height = height
+
+      const ts = Date.now()
+
+      // We need this try catch block because of
+      // https://github.com/justadudewhohacks/face-api.js/issues/66
+      // If we dont have this block, inferencing of training will stop
+      try {
+        const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
+        updateTimeStats(Date.now() - ts)
+        return fullFaceDescriptions
+      } catch (err) {
+        console.log(err)
+      }
+    },
+    drawDetection: function (detection, landmarks) {
+      const {width, height} = faceapi.getMediaDimensions(videoEl)
+
+      canvas.width = width
+      canvas.height = height
+
+      faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
+      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
     }
   }
 })
 
 Vue.component('training-app', {
-  props: ['setTrainingFlag', 'isTraining'],
+  props: ['setTrainingFlag', 'isTraining', 'drawDetection', 'forwardPass'],
   data () {
     return {
       numTrainImages: 5,
@@ -43,14 +78,14 @@ Vue.component('training-app', {
       // Trains a class
       this.setTrainingFlag(true)
 
-      const faceDescriptions = await forwardPass2()
+      const faceDescriptions = await this.forwardPass()
 
       faceDescriptions.forEach(({detection, landmarks, descriptor}) => {
         if (detection.score < minConfidence) {
           return
         }
 
-        drawDetectionAndLandmarks(detection, landmarks)
+        this.drawDetection(detection, landmarks)
 
         const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
         detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
