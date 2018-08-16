@@ -56,34 +56,10 @@
       <button @click="switchTab('classlist')" :disabled="isTraining">Edit/Delete classes</button>
       <button @click="switchTab('info')" :disabled="isTraining">Instructions</button>
     </div>
-    <div
-      class="train-tab"
-      v-if="tab === 'train'">
-      <h3>Train the system on a face</h3>
-      <div v-if="!isTraining">
-        <p>How many pictures will the system take for training?</p>
-        <div class="train-slider">
-          <input
-            id="numTrainImages"
-            type="range"
-            min="1"
-            max="10"
-            v-model="numTrainImages">
-          <span>{{numTrainImages}}</span>
-        </div>
-        <p>
-          <small>Note: Even 1 image works great! Try it!</small>
-        </p>
-        <div>
-          <p>Whose face is this?</p>
-          <input id="trainClass" type="text" name=""><button onClick="trainClass()">Train class</button>
-        </div>
-      </div>
-      <div v-else>
-        <p>Try different poses!</p>
-        <button onClick="forwardPass('training')">Train class</button>
-      </div>
-    </div>
+    <training-app
+      v-if="tab === 'train'"
+      :set-training-flag="setTrainingFlag"
+      :is-training="isTraining"></training-app>
     <div
       class="detect-tab"
       v-if="tab === 'detect'">
@@ -126,7 +102,7 @@
   <p><small>Made with 🔥 by <a href="https://beatobongco.com/UI-Kata/">Beato</a></small>.</p>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.2/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
 <script src="js/lib/face-api.js"></script>
 <!-- Order of loading js files is important since we have some shared globals like constants for now -->
 <script src="js/1_db.js"></script>

@@ -223,4 +223,51 @@ async function forwardPass (mode, singleShot = false) {
   }
 }
 
+async function forwardPass2 () {
+  // Performs a forward pass on the network with the video element as input
+  if (videoEl.paused || videoEl.ended || !modelLoaded) {
+    return false
+  }
+
+  const {width, height} = faceapi.getMediaDimensions(videoEl)
+
+  // I've tried removing this, it seems explicit setting of
+  // canvas width and height is required to draw properly
+  canvas.width = width
+  canvas.height = height
+
+  const ts = Date.now()
+
+  // We need this try catch block because of
+  // https://github.com/justadudewhohacks/face-api.js/issues/66
+  // If we dont have this block, inferencing of training will stop
+  try {
+    const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
+    updateTimeStats(Date.now() - ts)
+    return fullFaceDescriptions
+    // fullFaceDescriptions.forEach(({detection, landmarks, descriptor}) => {
+    //   if (detection.score < minConfidence) {
+    //     return
+    //   }
+
+    //   faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
+    //   faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
+
+    //   fn(detection, landmarks, descriptor)
+    // })
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+function drawDetectionAndLandmarks (detection, landmarks) {
+  const {width, height} = faceapi.getMediaDimensions(videoEl)
+
+  canvas.width = width
+  canvas.height = height
+
+  faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
+  faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
+}
+
 $(document).ready(run)
