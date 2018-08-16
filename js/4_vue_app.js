@@ -3,7 +3,9 @@
 
   For function definition shorthand: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 
-  TODO: most of the app will eventually be refactored in Vue.
+  TODO:
+    * most of the app will eventually be refactored in Vue.
+    * globals should be ALL_CAPS
 */
 const app = new Vue({
   el: '#app',
@@ -56,6 +58,10 @@ const app = new Vue({
 
       faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
       faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
+
+      const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
+      detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
+                            0, 0, detectorCnv.width, detectorCnv.height)
     }
   }
 })
@@ -63,6 +69,8 @@ const app = new Vue({
 Vue.component('training-app', {
   props: ['setTrainingFlag', 'isTraining', 'drawDetection', 'forwardPass'],
   data () {
+    // It's fine for this component to have this much state because it's just temporary.
+    // This state is cleared after it is sent to db after successful training.
     return {
       numTrainImages: 5,
       embeddings: [],
@@ -86,10 +94,6 @@ Vue.component('training-app', {
         }
 
         this.drawDetection(detection, landmarks)
-
-        const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
-        detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
-                              0, 0, detectorCnv.width, detectorCnv.height)
 
         this.embeddings.push(descriptor)
         // We save the first image taken as the display picture
