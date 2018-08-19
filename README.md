@@ -5,7 +5,7 @@ All lib credits go to Vincent Mühler and his amazing [face-api.js](https://gith
 
 Demo: https://beatobongco.com/sentinel/
 
-
+![image](https://user-images.githubusercontent.com/3739702/44310030-4a67b300-a402-11e8-90a0-1269d8878feb.png)
 
 ## Instructions
 
@@ -16,6 +16,9 @@ This system uses your webcam to detect faces. The data is stored in your browser
 Next is a brief explanation of the tabs...
 
 ## Training tab
+
+![image](https://user-images.githubusercontent.com/3739702/44310036-6408fa80-a402-11e8-8b84-7725005cd400.png)
+
 
 Training allows you to add your face to the system. Fill in the text input with your or your friend's name, choose how many pictures you want the system to take (1-5 is fine, it wont take pictures that are too similar) and press "Train class".
 
@@ -35,6 +38,9 @@ The system can detect in "Single shot" and "Real-time" modes and can detect mult
 * Real-time - the system will continually detect faces and add them to memory if it doesn't know them.
 
 ## Edit/Delete classes tab
+
+![image](https://user-images.githubusercontent.com/3739702/44310021-33c15c00-a402-11e8-86ce-d541e8d7a647.png)
+
 A simple utility where one can delete stored faces or edit their names.
 
 ## Next steps

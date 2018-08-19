@@ -141,7 +141,7 @@ const app = new Vue({
       canvas.height = height
 
       faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2, color})
-      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color})
+      // faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color})
 
       const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
       detectorCtx.drawImage(videoEl, x, y, boxWidth, boxHeight,
@@ -220,7 +220,7 @@ const app = new Vue({
             // save the embeddings to the database
             className = unknownPrefix + db.getAutoIncrement()
             const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
-            detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
+            detectorCtx.drawImage(videoEl, x, y, boxWidth, boxHeight,
                                   0, 0, detectorCnv.width, detectorCnv.height)
             db.addClass(className, [descriptor], detectorCnv.toDataURL())
             color = 'red'
@@ -295,16 +295,6 @@ Vue.component('training-app', {
       trainClassName: null
     }
   },
-  watch: {
-    mode (value) {
-      // Whenever the app becomes IDLE, reset this component's state
-      if (value === constants.modes.IDLE) {
-        console.log('Became IDLE, resetting training-app\'s state')
-        clearCanvas()
-        Object.assign(this.$data, this.$options.data())
-      }
-    }
-  },
   methods: {
     onClick () {
       const {videoEl} = constants
@@ -353,6 +343,8 @@ Vue.component('training-app', {
       if (this.embeddings.length >= this.numTrainImages) {
         db.addClass(this.trainClassName, this.embeddings, this.classImage)
         this.setMode(modes.IDLE)
+        clearCanvas()
+        Object.assign(this.$data, this.$options.data())
       } else {
         setTimeout(this.train)
       }
