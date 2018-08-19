@@ -131,10 +131,11 @@ const app = new Vue({
       canvas.width = width
       canvas.height = height
 
+      // FIXME: since the refactor this doesn't work anymore in realtime...
+      // could it be the speed? Fuck.
       faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
       faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
 
-      // console.log(detection.forSize(width, height), landmarks.forSize(width, height), color, className)
       const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
       detectorCtx.drawImage(videoEl, x, y, boxWidth, boxHeight,
                             0, 0, detectorCnv.width, detectorCnv.height)
@@ -186,7 +187,6 @@ const app = new Vue({
 
       const faceDescriptions = await this.forwardPass()
 
-      console.log('classifying')
       // boolean flag needed for single shot mode
       let detected = false
 
@@ -247,7 +247,7 @@ const app = new Vue({
       this.forwardTimes = [timeInMs].concat(this.forwardTimes).slice(0, 30)
     },
     onDetect: async function (btnMode) {
-      const {modes, videoEl, canvasCtx, canvas} = constants
+      const {modes, videoEl} = constants
       if (videoEl.paused) {
         videoEl.play()
         await new Promise(resolve => setTimeout(resolve, 100))
