@@ -183,7 +183,7 @@ const app = new Vue({
     classifyFace: async function () {
       const {db, videoEl, detectorCnv, detectorCtx,
              maxFaceDist, unknownPrefix, minConfidence,
-             modes} = constants
+             modes, canvasCtx} = constants
 
       const faceDescriptions = await this.forwardPass()
 
@@ -210,7 +210,6 @@ const app = new Vue({
               color = 'green'
             }
           } else {
-            console.log('Tagged as unknown because dist was', bestMatch.distance, 'to best match', bestMatch.className)
             // If class is unknown, assign it a number and
             // save the embeddings to the database
             className = unknownPrefix + db.getAutoIncrement()
@@ -229,6 +228,8 @@ const app = new Vue({
       // * we stop detection
       // * if we detected at least one face,
       //   we pause video and show detection box (for slow computers)
+
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
 
       if (this.mode === modes.IDLE) {
         return
@@ -322,7 +323,7 @@ Vue.component('training-app', {
         this.setMode(modes.IDLE)
         // reset state
         Object.assign(this.$data, this.$options.data())
-        // canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
       } else {
         this.train()
       }
