@@ -46,6 +46,7 @@ function clearCanvas () {
 const app = new Vue({
   el: '#app',
   data: {
+    status: 'Loading...',
     mode: constants.modes.LOADING,
     tab: 'info',
     sharedState: constants.db.state,
@@ -68,6 +69,7 @@ const app = new Vue({
       await this.forwardPass()
       videoEl.removeEventListener('canplay', handler)
       this.setMode(modes.IDLE)
+      $('.canvas-container').show()
     }.bind(this)
 
     videoEl.addEventListener('canplay', handler)
@@ -337,7 +339,7 @@ Vue.component('training-app', {
   template: `
     <div
       class="train-tab">
-      <h3>Train the system on a face</h3>
+      <h3 id="train">Train the system on a face</h3>
       <div v-if="mode === 'LOOP'">
         <p>
           Training class {{trainClassName}}... {{embeddings.length}}/{{numTrainImages}}.

@@ -28,30 +28,26 @@
         muted
         id="inputVideo"></video>
       <canvas id="overlay"></canvas>
-    </div>
-    <div class="detector">
       <canvas id="detectorCnv" width="50px" height="50px"></canvas>
     </div>
   </div>
   <div id="app">
     <div class="stats-container">
-      <p>
-        <small>
-          <span>Estimated framerate:</span>
-          <span>{{fps}}</span>
-          <span>|</span>
-        </small>
-        <small>
-          <span>Inference time:</span>
-          <span>{{avgInferenceTime}}</span>
-        </small>
-      </p>
+      <div class="box">
+        Status: <strong>{{status}}</strong>
+      </div>
+      <div class="box">
+        Estimated framerate: {{fps}}
+      </div>
+      <div class="box">
+        Inference time: {{avgInferenceTime}}
+      </div>
     </div>
     <div class="tabs">
-      <button @click="switchTab('train')" :disabled="mode !== 'IDLE'">Training</button>
-      <button @click="switchTab('detect')" :disabled="mode !== 'IDLE'">Detection</button>
-      <button @click="switchTab('classlist')" :disabled="mode !== 'IDLE'">Edit/Delete classes</button>
-      <button @click="switchTab('info')" :disabled="mode !== 'IDLE'">Instructions</button>
+      <a href="#train" @click.prevent="switchTab('train')" :disabled="mode !== 'IDLE'">Training</a>
+      <a href="#detect" @click.prevent="switchTab('detect')" :disabled="mode !== 'IDLE'">Detection</a>
+      <a href="#edit" @click.prevent="switchTab('classlist')" :disabled="mode !== 'IDLE'">Edit/Delete classes</a>
+      <a href="#info" @click.prevent="switchTab('info')" :disabled="mode !== 'IDLE'">Instructions</a>
     </div>
     <training-app
       v-if="tab === 'train'"
@@ -63,7 +59,7 @@
     <div
       class="detect-tab"
       v-if="tab === 'detect'">
-      <h3>Detect faces</h3>
+      <h3 id="detect">Detect faces</h3>
       <p>Current network: MTCNN</p>
       <div>
         <button :disabled="mode !== 'IDLE'"
@@ -76,7 +72,7 @@
     <div
       class="classlist-tab"
       v-if="tab === 'classlist'">
-      <h3>Edit/Delete classes</h3>
+      <h3 id="edit">Edit/Delete classes</h3>
       <div class="face-class-container">
         <face-class
           v-for="embs in sharedState.embeddings"
@@ -97,6 +93,8 @@
       <h3>Training tab</h3>
 
       <p>Training allows you to add your face to the system. Fill in the text input with your or your friend's name, choose how many pictures you want the system to take (1-5 is fine, it wont take pictures that are too similar) and press "Train class".</p>
+
+      <p>The small box on the lower left section of the video feed is the "picture" the system sees.</p>
 
       <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
 
