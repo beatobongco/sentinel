@@ -67,7 +67,8 @@ video {
   display: flex;
   font-size: 90%;
 }
-.tabs a {
+.tabs button {
+  cursor: pointer;
   text-align: center;
   padding: .5rem 0;
   flex: 1;
@@ -76,13 +77,36 @@ video {
   text-decoration: none;
   border-left: 1px solid #7f8c8d;
   border-right: 1px solid #7f8c8d;
-}
-.tabs a:not(:focus) {
+  border-top: none;
+  border-left: 1px solid #7f8c8d;
+  border-right: 1px solid #7f8c8d;
   background-color: #bdc3c7;
   border-bottom: 1px solid #7f8c8d;
 }
-.tabs a:focus {
+.tabs button.active {
   border-top: 1px solid #7f8c8d;
+  border-bottom: none;
   outline: 0;
   background-color: #fff;
+}
+.tab-contents button {
+  cursor: pointer;
+  border-radius: 2px;
+  background-color: #3498db;
+  color: #fff;
+  padding: 5px;
+  border: none;
+  min-width: 80px;
+}
+.tab-contents button.primary {
+  background-color: #2ecc71;
+}
+.tab-contents button.negative {
+  background-color: #e74c3c;
+}
+.tab-contents button.neutral {
+  background-color: #7f8c8d;
+}
+.tab-contents button:hover {
+  opacity: .9;
 }

@@ -54,8 +54,10 @@ const app = new Vue({
   },
   mounted: async function () {
     const {faceapi, db, modes, modelsPath, videoEl} = constants
+    this.status = "Loading model weights..."
     await faceapi.loadMtcnnModel(modelsPath)
     await faceapi.loadFaceRecognitionModel(modelsPath)
+    this.status = "Initializing database..."
     await db.init()
 
     // setup video feed
@@ -66,6 +68,7 @@ const app = new Vue({
 
     const handler = async function () {
       console.log('Warming up the engines, my lord.')
+      this.status = "Warming up the network..."
       await this.forwardPass()
       videoEl.removeEventListener('canplay', handler)
       this.setMode(modes.IDLE)
@@ -90,6 +93,12 @@ const app = new Vue({
   watch: {
     mode (mode) {
       console.log(`System mode: ${mode}.`)
+      const {modes} = constants
+      if (mode === modes.IDLE) {
+        this.status = 'READY'
+      } else if (mode === modes.LOOP | modes.SINGLE) {
+        this.status = 'DETECTING'
+      }
     }
   },
   methods: {
@@ -246,6 +255,14 @@ const app = new Vue({
     updateTimeStats (timeInMs) {
       this.forwardTimes = [timeInMs].concat(this.forwardTimes).slice(0, 30)
     },
+    getTabs () {
+      return [
+        {id: 'train', text: 'Training'},
+        {id: 'detect', text: 'Detection'},
+        {id: 'classlist', text: 'Edit/Delete classes'},
+        {id: 'info', text: 'Instructions'}
+      ]
+    },
     onDetect: async function (btnMode) {
       const {modes, videoEl} = constants
       if (videoEl.paused) {
@@ -316,7 +333,7 @@ Vue.component('training-app', {
             console.log('ACCEPT. Image distance:', meanDistance)
           }
 
-          this.drawDetection(detection, landmarks)
+          this.drawDetection(detection, landmarks, 'blue', this.trainClassName)
 
           this.embeddings.push(descriptor)
           // We save the first image taken as the display picture
@@ -363,7 +380,7 @@ Vue.component('training-app', {
         <div>
           <p>Whose face is this?</p>
           <input v-model="trainClassName" type="text">
-          <button @click="train">Train class</button>
+          <button class="primary" @click="train">Train class</button>
         </div>
       </div>
     </div>
@@ -418,12 +435,12 @@ Vue.component('face-class', {
       </div>
       <div class="controls">
         <span v-if="isEditing">
-          <button @click="updateClass">Save</button>
-          <button @click="cancel">Cancel</button>
+          <button class="primary" @click="updateClass">Save</button>
+          <button class="neutral" @click="cancel">Cancel</button>
         </span>
         <span v-else>
-          <button @click="toggleEdit">Edit</button>
-          <button @click="deleteClass">Delete</button>
+          <button class="neutral" @click="toggleEdit">Edit</button>
+          <button class="negative" @click="deleteClass">Delete</button>
         </span>
       </div>
     </div>`

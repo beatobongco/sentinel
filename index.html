@@ -19,7 +19,6 @@
   <div class="title">
     <h1>Sentinel</h1>
     <p>Proof of concept quick facial recognition system completely in the browser. Don't worry, none of your data is stored (it's in your browser's localstorage).</p>
-    <p><a href="#info">How do I use this?</a></p>
   </div>
   <div class="canvas-container">
     <div class="camera">
@@ -44,86 +43,90 @@
       </div>
     </div>
     <div class="tabs">
-      <a href="#train" @click.prevent="switchTab('train')" :disabled="mode !== 'IDLE'">Training</a>
-      <a href="#detect" @click.prevent="switchTab('detect')" :disabled="mode !== 'IDLE'">Detection</a>
-      <a href="#edit" @click.prevent="switchTab('classlist')" :disabled="mode !== 'IDLE'">Edit/Delete classes</a>
-      <a href="#info" @click.prevent="switchTab('info')" :disabled="mode !== 'IDLE'">Instructions</a>
+      <button
+        v-for="b in getTabs()"
+        :class="{active: b.id === tab}"
+        @click.prevent="switchTab(b.id)"
+        :disabled="mode !== 'IDLE'"
+      >{{b.text}}</button>
     </div>
-    <training-app
-      v-if="tab === 'train'"
-      :draw-detection="drawDetection"
-      :forward-pass="forwardPass"
-      :mode="mode"
-      :set-mode="setMode"
-      :compute-mean-distance="computeMeanDistance"></training-app>
-    <div
-      class="detect-tab"
-      v-if="tab === 'detect'">
-      <h3 id="detect">Detect faces</h3>
-      <p>Current network: MTCNN</p>
-      <div>
-        <button :disabled="mode !== 'IDLE'"
-          @click="onDetect('single')">Single shot</button>
-        <button :disabled="mode !== 'IDLE'"
-          @click="onDetect('realtime')">Real-time</button>
-        <button @click="onDetect('stop')">Stop</button>
+    <div class="tab-contents">
+      <training-app
+        v-if="tab === 'train'"
+        :draw-detection="drawDetection"
+        :forward-pass="forwardPass"
+        :mode="mode"
+        :set-mode="setMode"
+        :compute-mean-distance="computeMeanDistance"></training-app>
+      <div
+        class="detect-tab"
+        v-if="tab === 'detect'">
+        <h3 id="detect">Detect faces</h3>
+        <p>Current network: MTCNN</p>
+        <div>
+          <button class="neutral" :disabled="mode !== 'IDLE'"
+            @click="onDetect('single')">Single shot</button>
+          <button class="primary" :disabled="mode !== 'IDLE'"
+            @click="onDetect('realtime')">Real-time</button>
+          <button class="negative" @click="onDetect('stop')">Stop</button>
+        </div>
       </div>
-    </div>
-    <div
-      class="classlist-tab"
-      v-if="tab === 'classlist'">
-      <h3 id="edit">Edit/Delete classes</h3>
-      <div class="face-class-container">
-        <face-class
-          v-for="embs in sharedState.embeddings"
-          :embs="embs"
-          :key="embs.className"></face-class>
+      <div
+        class="classlist-tab"
+        v-if="tab === 'classlist'">
+        <h3 id="edit">Edit/Delete classes</h3>
+        <div class="face-class-container">
+          <face-class
+            v-for="embs in sharedState.embeddings"
+            :embs="embs"
+            :key="embs.className"></face-class>
+        </div>
       </div>
-    </div>
-    <div
-      class="info"
-      v-if="tab === 'info'">
-      <h3 id="info">Instructions</h3>
-      <p>First, allow the system to use your webcam. Then wait for your browser to load the weights (all in all around 8MB).</p>
+      <div
+        class="info"
+        v-if="tab === 'info'">
+        <h3 id="info">Instructions</h3>
+        <p>First, allow the system to use your webcam. Then wait for your browser to load the weights (all in all around 8MB).</p>
 
-      <p>This system uses your webcam to detect faces. The data is stored in your browser and is not accessible to me or other third parties. So go bonkers with this demo!</p>
+        <p>This system uses your webcam to detect faces. The data is stored in your browser and is not accessible to me or other third parties. So go bonkers with this demo!</p>
 
-      <p>Next is a brief explanation of the tabs...</p>
+        <p>Next is a brief explanation of the tabs...</p>
 
-      <h3>Training tab</h3>
+        <h3>Training tab</h3>
 
-      <p>Training allows you to add your face to the system. Fill in the text input with your or your friend's name, choose how many pictures you want the system to take (1-5 is fine, it wont take pictures that are too similar) and press "Train class".</p>
+        <p>Training allows you to add your face to the system. Fill in the text input with your or your friend's name, choose how many pictures you want the system to take (1-5 is fine, it wont take pictures that are too similar) and press "Train class".</p>
 
-      <p>The small box on the lower left section of the video feed is the "picture" the system sees.</p>
+        <p>The small box on the lower left section of the video feed is the "picture" the system sees.</p>
 
-      <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
+        <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
 
-      <h3>Detection tab</h3>
+        <h3>Detection tab</h3>
 
-      <p>Detection means identifying faces and checking if they are similar to the faces stored in its memory. If an unknown face is detected, it will save that face to the database which you can rename later on.</p>
+        <p>Detection means identifying faces and checking if they are similar to the faces stored in its memory. If an unknown face is detected, it will save that face to the database which you can rename later on.</p>
 
-      <p>To identify between known and unknown classes, the system uses simple <a href="https://en.wikipedia.org/wiki/Euclidean_distance">Euclidean distance</a> between face embeddings.</p>
+        <p>To identify between known and unknown classes, the system uses simple <a href="https://en.wikipedia.org/wiki/Euclidean_distance">Euclidean distance</a> between face embeddings.</p>
 
-      <p>The system can detect in "Single shot" and "Real-time" modes and can detect multiple faces at once.</p>
+        <p>The system can detect in "Single shot" and "Real-time" modes and can detect multiple faces at once.</p>
 
-      <ul>
-        <li><strong>Single shot</strong> - the system will pause the video feed upon the first detection of a face/faces. Ideal for machines with poor hardware like phones.</li>
-        <li><strong>Real-time</strong> - the system will continually detect faces and add them to memory if it doesn't know them.</li>
-      </ul>
+        <ul>
+          <li><strong>Single shot</strong> - the system will pause the video feed upon the first detection of a face/faces. Ideal for machines with poor hardware like phones.</li>
+          <li><strong>Real-time</strong> - the system will continually detect faces and add them to memory if it doesn't know them.</li>
+        </ul>
 
-      <h3>Edit/Delete classes tab</h3>
+        <h3>Edit/Delete classes tab</h3>
 
-      <p>A simple utility where one can delete stored faces or edit their names.</p>
+        <p>A simple utility where one can delete stored faces or edit their names.</p>
 
-      <h3>Next steps</h3>
+        <h3>Next steps</h3>
 
-      <p>This uses a pretrained <a href="https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html">MTCNN</a> for quick face detection on most hardware. In the future I'd like to provide a selection input so users can pick betwee different networks (e.g. more accurate but slower networks or vice versa).</p>
+        <p>This uses a pretrained <a href="https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html">MTCNN</a> for quick face detection on most hardware. In the future I'd like to provide a selection input so users can pick betwee different networks (e.g. more accurate but slower networks or vice versa).</p>
 
-      <p>I would also love to implement a blur filter since currently the system misidentifies known classes if you move too quickly. Ignoring people with too high a blur score could increase the system's utility.</p>
+        <p>I would also love to implement a blur filter since currently the system misidentifies known classes if you move too quickly. Ignoring people with too high a blur score could increase the system's utility.</p>
 
-      <h3>View the code</h3>
+        <h3>View the code</h3>
 
-      <p>You can check out the code <a href="https://github.com/beatobongco/sentinel">here</a>. This was made with Vincent Mueller's great <a href="https://github.com/justadudewhohacks/face-api.js">face-api.js</a> library.</p>
+        <p>You can check out the code <a href="https://github.com/beatobongco/sentinel">here</a>. This was made with Vincent Mueller's great <a href="https://github.com/justadudewhohacks/face-api.js">face-api.js</a> library.</p>
+      </div>
     </div>
   </div>
 
