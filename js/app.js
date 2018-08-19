@@ -3,9 +3,7 @@
 
   For function definition shorthand: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 
-  TODO:
-    * most of the app will eventually be refactored in Vue.
-    * globals should be ALL_CAPS
+  FIXME: Not sure if encasing in Vue app messes with performance.
 */
 
 // All our constants should only be under one namespace
@@ -97,11 +95,6 @@ const app = new Vue({
     forwardPass: async function () {
       // Performs a forward pass on the network with the video element as input
       const {videoEl, canvas, faceapi, mtcnnParams} = constants
-
-      // if (videoEl.paused || videoEl.ended) {
-      //   return
-      // }
-
       const {width, height} = faceapi.getMediaDimensions(videoEl)
 
       // I've tried removing this, it seems explicit setting of
@@ -131,8 +124,6 @@ const app = new Vue({
       canvas.width = width
       canvas.height = height
 
-      // FIXME: since the refactor this doesn't work anymore in realtime...
-      // could it be the speed? Fuck.
       faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
       faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
 
@@ -183,7 +174,7 @@ const app = new Vue({
     classifyFace: async function () {
       const {db, videoEl, detectorCnv, detectorCtx,
              maxFaceDist, unknownPrefix, minConfidence,
-             modes, canvasCtx, canvas} = constants
+             modes} = constants
 
       const faceDescriptions = await this.forwardPass()
 
@@ -192,7 +183,6 @@ const app = new Vue({
 
       if (faceDescriptions) {
         faceDescriptions.forEach(({detection, landmarks, descriptor}) => {
-          const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
           const bestMatch = this.getBestMatch(descriptor)
           let className, color
 
@@ -213,10 +203,11 @@ const app = new Vue({
             // If class is unknown, assign it a number and
             // save the embeddings to the database
             className = unknownPrefix + db.getAutoIncrement()
+            const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
+            detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
+                                  0, 0, detectorCnv.width, detectorCnv.height)
             db.addClass(className, [descriptor], detectorCnv.toDataURL())
             color = 'red'
-            // detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
-            //                       0, 0, detectorCnv.width, detectorCnv.height)
           }
 
           this.drawDetection(detection, landmarks, color, className)
@@ -229,18 +220,16 @@ const app = new Vue({
       // * if we detected at least one face,
       //   we pause video and show detection box (for slow computers)
 
-      canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
-
       if (this.mode === modes.IDLE) {
         return
       } else if (this.mode === modes.LOOP) {
-        this.classifyFace()
+        setTimeout(this.classifyFace)
       } else if (this.mode === modes.SINGLE) {
         if (detected) {
           videoEl.pause()
           this.setMode(modes.IDLE)
         } else {
-          this.classifyFace()
+          setTimeout(this.classifyFace)
         }
       }
     },
@@ -286,7 +275,7 @@ Vue.component('training-app', {
       // Trains a class
       const {minConfidence, maxFaceDist, detectorCnv, canvas,
              canvasCtx, db, modes} = constants
-      this.setMode(modes.TRAINING)
+      this.setMode(modes.LOOP)
 
       const faceDescriptions = await this.forwardPass()
 
@@ -323,9 +312,9 @@ Vue.component('training-app', {
         this.setMode(modes.IDLE)
         // reset state
         Object.assign(this.$data, this.$options.data())
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+        // canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
       } else {
-        this.train()
+        setTimeout(this.train)
       }
     }
   },
@@ -333,10 +322,10 @@ Vue.component('training-app', {
     <div
       class="train-tab">
       <h3>Train the system on a face</h3>
-      <div v-if="mode === 'TRAINING'">
+      <div v-if="mode === 'LOOP'">
         <p>
           Training class {{trainClassName}}... {{embeddings.length}}/{{numTrainImages}}.
-          Move your head around and doing other actions slowly (try blinking your eyes).
+          Please move your head around.
         </p>
       </div>
       <div v-else>
