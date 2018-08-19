@@ -3,9 +3,6 @@ body {
   font-family: 'Roboto', sans-serif;
   max-width: 700px;
 }
-.initial-hide {
-  display: none;
-}
 #app {
   min-height: 350px;
 }

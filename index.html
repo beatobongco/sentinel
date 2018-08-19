@@ -21,20 +21,7 @@
     <p>Proof of concept quick facial recognition timekeeping system completely client-side in the browser. </p>
     <p>Please be patient while the system loads. You'll know it's done when you can see your webcam's feed. <a href="#info">How do I use this?</a></p>
   </div>
-  <div class="initial-hide">
-    <div>
-      <p>
-        <small>
-          <span>Estimated Fps:</span>
-          <span id="fps"></span>
-          <span>|</span>
-        </small>
-        <small>
-          <span>Inference time in ms:</span>
-          <span id="time"></span>
-        </small>
-      </p>
-    </div>
+  <div class="canvas-containers">
     <div class="camera">
       <video
         autoplay
@@ -50,28 +37,41 @@
     <p>Status: <strong id="status">Loading models... (8MB)</strong></p>
   </div>
   <div id="app">
+    <div class="stats-container">
+      <p>
+        <small>
+          <span>Estimated Fps:</span>
+          <span>{{fps}}</span>
+          <span>|</span>
+        </small>
+        <small>
+          <span>Inference time in ms:</span>
+          <span>{{avgInferenceTime}}</span>
+        </small>
+      </p>
+    </div>
     <div class="tabs">
-      <button @click="switchTab('train')">Training</button>
-      <button @click="switchTab('detect')" :disabled="isTraining">Detection</button>
-      <button @click="switchTab('classlist')" :disabled="isTraining">Edit/Delete classes</button>
-      <button @click="switchTab('info')" :disabled="isTraining">Instructions</button>
+      <button @click="switchTab('train')" :disabled="mode !== 'IDLE'">Training</button>
+      <button @click="switchTab('detect')" :disabled="mode !== 'IDLE'">Detection</button>
+      <button @click="switchTab('classlist')" :disabled="mode !== 'IDLE'">Edit/Delete classes</button>
+      <button @click="switchTab('info')" :disabled="mode !== 'IDLE'">Instructions</button>
     </div>
     <training-app
       v-if="tab === 'train'"
       :draw-detection="drawDetection"
       :forward-pass="forwardPass"
-      :set-training-flag="setTrainingFlag"
-      :compute-mean-distance="computeMeanDistance"
-      :is-training="isTraining"></training-app>
+      :mode="mode"
+      :set-mode="setMode"
+      :compute-mean-distance="computeMeanDistance"></training-app>
     <div
       class="detect-tab"
       v-if="tab === 'detect'">
       <h3>Detect faces</h3>
       <p>Current network: MTCNN</p>
       <div>
-        <button onClick="singleShot()">Single shot</button>
-        <button onClick="realTime()">Real-time</button>
-        <button onClick="stop()">Stop</button>
+        <button @click="classifyFace(false)">Single shot</button>
+        <button @click="classifyFace(true)">Real-time</button>
+        <button >Stop</button>
       </div>
     </div>
     <div
