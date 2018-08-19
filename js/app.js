@@ -38,6 +38,11 @@ const constants = {
   }
 }
 
+function clearCanvas () {
+  const {canvas, canvasCtx} = constants
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+}
+
 const app = new Vue({
   el: '#app',
   data: {
@@ -82,7 +87,7 @@ const app = new Vue({
   },
   watch: {
     mode (mode) {
-      console.log(`System is now ${mode}.`)
+      console.log(`System mode: ${mode}.`)
     }
   },
   methods: {
@@ -124,8 +129,8 @@ const app = new Vue({
       canvas.width = width
       canvas.height = height
 
-      faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
-      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
+      faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2, color})
+      faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4, color})
 
       const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
       detectorCtx.drawImage(videoEl, x, y, boxWidth, boxHeight,
@@ -137,7 +142,7 @@ const app = new Vue({
           x,
           y + boxHeight + 3,
           className,
-          Object.assign(faceapi.getDefaultDrawOptions(), { color: color, fontSize: 20 })
+          Object.assign(faceapi.getDefaultDrawOptions(), { color, fontSize: 20 })
         )
       }
     },
@@ -221,8 +226,11 @@ const app = new Vue({
       //   we pause video and show detection box (for slow computers)
 
       if (this.mode === modes.IDLE) {
+        clearCanvas()
         return
       } else if (this.mode === modes.LOOP) {
+        // ATTENTION: You have to wrap heavy async functions like classifyFace
+        // and train else drawing detection will not work
         setTimeout(this.classifyFace)
       } else if (this.mode === modes.SINGLE) {
         if (detected) {
@@ -239,6 +247,7 @@ const app = new Vue({
     onDetect: async function (btnMode) {
       const {modes, videoEl} = constants
       if (videoEl.paused) {
+        clearCanvas()
         videoEl.play()
         await new Promise(resolve => setTimeout(resolve, 100))
       }
@@ -249,6 +258,7 @@ const app = new Vue({
         this.setMode(modes.LOOP)
         this.classifyFace()
       } else if (btnMode === 'stop') {
+        clearCanvas()
         this.setMode(modes.IDLE)
       }
     }
@@ -267,14 +277,23 @@ Vue.component('training-app', {
       trainClassName: null
     }
   },
+  watch: {
+    mode (value) {
+      // Whenever the app becomes IDLE, reset this component's state
+      if (value === constants.modes.IDLE) {
+        console.log('Became IDLE, resetting training-app\'s state')
+        clearCanvas()
+        Object.assign(this.$data, this.$options.data())
+      }
+    }
+  },
   methods: {
     // We're not using the shortcut async train()
     // because *maybe* it's too bleeding edge
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#Async_methods
     train: async function () {
       // Trains a class
-      const {minConfidence, maxFaceDist, detectorCnv, canvas,
-             canvasCtx, db, modes} = constants
+      const {minConfidence, maxFaceDist, detectorCnv, db, modes} = constants
       this.setMode(modes.LOOP)
 
       const faceDescriptions = await this.forwardPass()
@@ -310,9 +329,6 @@ Vue.component('training-app', {
       if (this.embeddings.length >= this.numTrainImages) {
         db.addClass(this.trainClassName, this.embeddings, this.classImage)
         this.setMode(modes.IDLE)
-        // reset state
-        Object.assign(this.$data, this.$options.data())
-        // canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
       } else {
         setTimeout(this.train)
       }
