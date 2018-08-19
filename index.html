@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sentinel - facial recognition timekeeping system</title>
+  <title>Sentinel - facial recognition system</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:title" content="Sentinel - facial recognition timekeeping system" />
+  <meta property="og:title" content="Sentinel - facial recognition system" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://beatobongco.com/sentinel/" />
   <meta property="og:image" content="https://beatobongco.com/UI-Kata/index-assets/og.png" />
-  <meta property="og:description" content="Proof of concept quick facial recognition timekeeping system." />
-  <meta name="description" content="Proof of concept quick facial recognition timekeeping system.">
+  <meta property="og:description" content="Proof of concept quick facial recognition system." />
+  <meta name="description" content="Proof of concept quick facial recognition system.">
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/flexboxgrid/6.3.1/flexboxgrid.min.css">
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -18,8 +18,8 @@
 <body>
   <div class="title">
     <h1>Sentinel</h1>
-    <p>Proof of concept quick facial recognition timekeeping system completely client-side in the browser. </p>
-    <p>Please be patient while the system loads. You'll know it's done when you can see your webcam's feed. <a href="#info">How do I use this?</a></p>
+    <p>Proof of concept quick facial recognition system completely in the browser. Don't worry, none of your data is stored (it's in your browser's localstorage).</p>
+    <p><a href="#info">How do I use this?</a></p>
   </div>
   <div class="canvas-container">
     <div class="camera">
@@ -32,9 +32,6 @@
     <div class="detector">
       <canvas id="detectorCnv" width="50px" height="50px"></canvas>
     </div>
-  </div>
-  <div>
-    <p>Status: <strong id="status">Loading models... (8MB)</strong></p>
   </div>
   <div id="app">
     <div class="stats-container">
@@ -91,20 +88,50 @@
       class="info"
       v-if="tab === 'info'">
       <h3 id="info">Instructions</h3>
-      <ol>
-        <li>Allow the system to use your webcam.</li>
-        <li>Go to the "Training" tab. Type in the name of the person you want the system to recognize. </li>
-        <li>While moving your head around press "Train class".</li>
-        <li>Go to the "Detection" tab. Press "Single shot" or "Real-time" to play around with face detection.</li>
-      </ol>
+      <p>First, allow the system to use your webcam. Then wait for your browser to load the weights (all in all around 8MB).</p>
+
+      <p>This system uses your webcam to detect faces. The data is stored in your browser and is not accessible to me or other third parties. So go bonkers with this demo!</p>
+
+      <p>Next is a brief explanation of the tabs...</p>
+
+      <h3>Training tab</h3>
+
+      <p>Training allows you to add your face to the system. Fill in the text input with your or your friend's name, choose how many pictures you want the system to take (1-5 is fine, it wont take pictures that are too similar) and press "Train class".</p>
+
       <p>Note that while the system can detect multiple faces at once, you must train for each face separately for it to run properly.</p>
-      <p>Note also that all this data is stored in your browser and is not accessible to me or other third parties. So go bonkers with it!</p>
+
+      <h3>Detection tab</h3>
+
+      <p>Detection means identifying faces and checking if they are similar to the faces stored in its memory. If an unknown face is detected, it will save that face to the database which you can rename later on.</p>
+
+      <p>To identify between known and unknown classes, the system uses simple <a href="https://en.wikipedia.org/wiki/Euclidean_distance">Euclidean distance</a> between face embeddings.</p>
+
+      <p>The system can detect in "Single shot" and "Real-time" modes and can detect multiple faces at once.</p>
+
+      <ul>
+        <li><strong>Single shot</strong> - the system will pause the video feed upon the first detection of a face/faces. Ideal for machines with poor hardware like phones.</li>
+        <li><strong>Real-time</strong> - the system will continually detect faces and add them to memory if it doesn't know them.</li>
+      </ul>
+
+      <h3>Edit/Delete classes tab</h3>
+
+      <p>A simple utility where one can delete stored faces or edit their names.</p>
+
+      <h3>Next steps</h3>
+
+      <p>This uses a pretrained <a href="https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html">MTCNN</a> for quick face detection on most hardware. In the future I'd like to provide a selection input so users can pick betwee different networks (e.g. more accurate but slower networks or vice versa).</p>
+
+      <p>I would also love to implement a blur filter since currently the system misidentifies known classes if you move too quickly. Ignoring people with too high a blur score could increase the system's utility.</p>
+
+      <h3>View the code</h3>
+
+      <p>You can check out the code <a href="https://github.com/beatobongco/sentinel">here</a>. This was made with Vincent Mueller's great <a href="https://github.com/justadudewhohacks/face-api.js">face-api.js</a> library.</p>
     </div>
   </div>
 
   <hr>
 
-  <p><small>Made with 🔥 by <a href="https://beatobongco.com/UI-Kata/">Beato</a></small>.</p>
+  <p><small>Made with 🔥 by <a href="https://beatobongco.com/UI-Kata/">Beato</a> using Vincent Mueller's <a href="https://github.com/justadudewhohacks/face-api.js">face-api.js</a>.</small></p>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.2/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
