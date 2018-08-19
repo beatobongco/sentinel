@@ -92,7 +92,7 @@ video {
 .tab-contents button {
   cursor: pointer;
   border-radius: 2px;
-  background-color: #3498db;
+  background-color: #7f8c8d;
   color: #fff;
   padding: 5px 10px;
   border: none;
@@ -105,7 +105,10 @@ video {
   background-color: #e74c3c;
 }
 .tab-contents button.neutral {
-  background-color: #7f8c8d;
+  background-color: #3498db;
+}
+.tab-contents button:disabled {
+  background-color: #7f8c8d !important;
 }
 .tab-contents button:hover {
   opacity: .9;

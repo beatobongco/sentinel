@@ -54,10 +54,10 @@ const app = new Vue({
   },
   mounted: async function () {
     const {faceapi, db, modes, modelsPath, videoEl} = constants
-    this.status = "Loading model weights..."
+    this.status = 'Loading model weights...'
     await faceapi.loadMtcnnModel(modelsPath)
     await faceapi.loadFaceRecognitionModel(modelsPath)
-    this.status = "Initializing database..."
+    this.status = 'Initializing database...'
     await db.init()
 
     // setup video feed
@@ -68,7 +68,7 @@ const app = new Vue({
 
     const handler = async function () {
       console.log('Warming up the engines, my lord.')
-      this.status = "Warming up the network..."
+      this.status = 'Warming up the network...'
       await this.forwardPass()
       videoEl.removeEventListener('canplay', handler)
       this.setMode(modes.IDLE)
@@ -277,7 +277,6 @@ const app = new Vue({
         this.setMode(modes.LOOP)
         this.classifyFace()
       } else if (btnMode === 'stop') {
-        clearCanvas()
         this.setMode(modes.IDLE)
       }
     }
@@ -290,7 +289,7 @@ Vue.component('training-app', {
     // It's fine for this component to have this much state because it's just temporary.
     // This state is cleared after it is sent to db after successful training.
     return {
-      numTrainImages: 5,
+      numTrainImages: 3,
       embeddings: [],
       classImage: null,
       trainClassName: null
@@ -307,6 +306,12 @@ Vue.component('training-app', {
     }
   },
   methods: {
+    onClick () {
+      const {videoEl} = constants
+      clearCanvas()
+      videoEl.play()
+      this.train()
+    },
     // We're not using the shortcut async train()
     // because *maybe* it's too bleeding edge
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#Async_methods
@@ -370,7 +375,7 @@ Vue.component('training-app', {
             id="numTrainImages"
             type="range"
             min="1"
-            max="10"
+            max="5"
             v-model="numTrainImages">
           <span>{{numTrainImages}}</span>
         </div>
@@ -380,7 +385,7 @@ Vue.component('training-app', {
         <div>
           <p>Whose face is this?</p>
           <input v-model="trainClassName" type="text">
-          <button class="primary" @click="train">Train class</button>
+          <button class="primary" @click="onClick">Train class</button>
         </div>
       </div>
     </div>
@@ -436,7 +441,7 @@ Vue.component('face-class', {
       <div class="controls">
         <span v-if="isEditing">
           <button class="primary" @click="updateClass">Save</button>
-          <button class="neutral" @click="cancel">Cancel</button>
+          <button class="negative" @click="cancel">Cancel</button>
         </span>
         <span v-else>
           <button class="neutral" @click="toggleEdit">Edit</button>
