@@ -183,7 +183,7 @@ const app = new Vue({
     classifyFace: async function () {
       const {db, videoEl, detectorCnv, detectorCtx,
              maxFaceDist, unknownPrefix, minConfidence,
-             modes, canvasCtx} = constants
+             modes, canvasCtx, canvas} = constants
 
       const faceDescriptions = await this.forwardPass()
 
