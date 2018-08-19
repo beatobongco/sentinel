@@ -1,84 +1,84 @@
-const videoEl = document.querySelector('#inputVideo')
-const canvas = document.getElementById('overlay')
-const canvasCtx = canvas.getContext('2d')
-const detectorCnv = document.getElementById('detectorCnv')
-const detectorCtx = detectorCnv.getContext('2d')
-const maxFaceDist = 0.6
-const minConfidence = 0.99
-const unknownPrefix = 'Unknown #'
-const mtcnnParams = {
-  /*
-    Using CPU (Intel Core i5-6300U CPU @ 2.40GHz)
-    minFaceSize
-      100 gets me ~20fps
-      200 gets me ~30-40fps
-  */
-  minFaceSize: 100
-}
-let forwardTimes = []
+// const videoEl = document.querySelector('#inputVideo')
+// const canvas = document.getElementById('overlay')
+// const canvasCtx = canvas.getContext('2d')
+// const detectorCnv = document.getElementById('detectorCnv')
+// const detectorCtx = detectorCnv.getContext('2d')
+// const maxFaceDist = 0.6
+// const minConfidence = 0.99
+// const unknownPrefix = 'Unknown #'
+// const mtcnnParams = {
+//   /*
+//     Using CPU (Intel Core i5-6300U CPU @ 2.40GHz)
+//     minFaceSize
+//       100 gets me ~20fps
+//       200 gets me ~30-40fps
+//   */
+//   minFaceSize: 100
+// }
+// let forwardTimes = []
 
-// a temporary container for our training data
-// this should always be cleared after a new class is added
-const trainState = {
-  state: {
-    data: [],
-    image: null,
-    className: null
-  },
-  emptyState () {
-    this.state.data = []
-    this.state.image = null
-    this.state.className = null
-  },
-  setImage (img) {
-    this.state.image = img
-  },
-  setClassName (n) {
-    this.state.className = n
-  },
-  appendData (d) {
-    this.state.data.push(d)
-  }
-}
+// // a temporary container for our training data
+// // this should always be cleared after a new class is added
+// const trainState = {
+//   state: {
+//     data: [],
+//     image: null,
+//     className: null
+//   },
+//   emptyState () {
+//     this.state.data = []
+//     this.state.image = null
+//     this.state.className = null
+//   },
+//   setImage (img) {
+//     this.state.image = img
+//   },
+//   setClassName (n) {
+//     this.state.className = n
+//   },
+//   appendData (d) {
+//     this.state.data.push(d)
+//   }
+// }
 
-function updateTimeStats (timeInMs) {
-  forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
-  const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
-  $('#time').text(`${Math.round(avgTimeInMs)} ms`)
-  $('#fps').text(`${faceapi.round(1000 / avgTimeInMs)}`)
-}
+// function updateTimeStats (timeInMs) {
+//   forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
+//   const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
+//   $('#time').text(`${Math.round(avgTimeInMs)} ms`)
+//   $('#fps').text(`${faceapi.round(1000 / avgTimeInMs)}`)
+// }
 
-function computeMeanDistance(descriptors, queryDescriptor) {
-  return faceapi.round(
-    descriptors
-      .map(d => faceapi.euclideanDistance(d, queryDescriptor))
-      .reduce((d1, d2) => d1 + d2, 0) / (descriptors.length || 1)
-    )
-}
+// function computeMeanDistance(descriptors, queryDescriptor) {
+//   return faceapi.round(
+//     descriptors
+//       .map(d => faceapi.euclideanDistance(d, queryDescriptor))
+//       .reduce((d1, d2) => d1 + d2, 0) / (descriptors.length || 1)
+//     )
+// }
 
-function getBestMatch(descriptorsByClass, queryDescriptor) {
-  /*
-    Args:
-      descriptorsByClass: array of objs with className and face
-                          embeddings
-         queryDescriptor: face embeddings of incoming detection
-    Returns:
-      Object {className, distance}
-  */
-  if (descriptorsByClass.length === 0) {
-    $('#status').text('No classes. Train some first!')
-    return
-  }
+// function getBestMatch(descriptorsByClass, queryDescriptor) {
+//   /*
+//     Args:
+//       descriptorsByClass: array of objs with className and face
+//                           embeddings
+//          queryDescriptor: face embeddings of incoming detection
+//     Returns:
+//       Object {className, distance}
+//   */
+//   if (descriptorsByClass.length === 0) {
+//     $('#status').text('No classes. Train some first!')
+//     return
+//   }
 
-  return descriptorsByClass
-    .map(
-      ({descriptors, className}) => ({
-        distance: computeMeanDistance(descriptors, queryDescriptor),
-        className
-      })
-    )
-    .reduce((best, curr) => best.distance < curr.distance ? best : curr)
-}
+//   return descriptorsByClass
+//     .map(
+//       ({descriptors, className}) => ({
+//         distance: computeMeanDistance(descriptors, queryDescriptor),
+//         className
+//       })
+//     )
+//     .reduce((best, curr) => best.distance < curr.distance ? best : curr)
+// }
 
 // async function run () {
 

@@ -15,7 +15,7 @@ const constants = {
   maxFaceDist: 0.6,
   // If score is any lower than minConfidence,
   // system wont process this face
-  minConfidence: 0.99,
+  minConfidence: 0.9,
   // Prefix given to unknown classes
   unknownPrefix: 'Unknown #',
   db: Object.create(db),
@@ -31,12 +31,12 @@ const constants = {
   modes: {
     LOADING: 'LOADING',
     IDLE: 'IDLE',
-    TRAINING: 'TRAINING',
-    DETECTING: 'DETECTING'
+    LOOP: 'LOOP',
+    SINGLE: 'SINGLE'
   },
   modelsPath: 'models/',
   mtcnnParams: {
-    minFaceSize: 100
+    minFaceSize: 200
   }
 }
 
@@ -76,10 +76,10 @@ const app = new Vue({
       }
     },
     fps () {
-      return Math.round(1000 / this.avgTimeInMs)
+      return `${Math.round(1000 / this.avgTimeInMs) || 0} fps`
     },
     avgInferenceTime () {
-      return Math.round(this.avgTimeInMs)
+      return `${Math.round(this.avgTimeInMs) || 0} ms`
     }
   },
   watch: {
@@ -95,12 +95,12 @@ const app = new Vue({
       this.mode = mode
     },
     forwardPass: async function () {
-      const {videoEl, canvas, faceapi, mtcnnParams} = constants
       // Performs a forward pass on the network with the video element as input
-      if (videoEl.paused || videoEl.ended) {
-        videoEl.play()
-        return
-      }
+      const {videoEl, canvas, faceapi, mtcnnParams} = constants
+
+      // if (videoEl.paused || videoEl.ended) {
+      //   return
+      // }
 
       const {width, height} = faceapi.getMediaDimensions(videoEl)
 
@@ -124,7 +124,6 @@ const app = new Vue({
     },
     drawDetection (detection, landmarks, color, className) {
       // TODO: Since we refactored, we are able to customize color better
-      console.log('draw called')
       const {faceapi, videoEl, canvas, canvasCtx,
              detectorCnv, detectorCtx} = constants
       const {width, height} = faceapi.getMediaDimensions(videoEl)
@@ -135,9 +134,10 @@ const app = new Vue({
       faceapi.drawDetection('overlay', detection.forSize(width, height), {lineWidth: 2})
       faceapi.drawLandmarks('overlay', landmarks.forSize(width, height), {lineWidth: 4})
 
+      // console.log(detection.forSize(width, height), landmarks.forSize(width, height), color, className)
       const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
-      // detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
-      //                       0, 0, detectorCnv.width, detectorCnv.height)
+      detectorCtx.drawImage(videoEl, x, y, boxWidth, boxHeight,
+                            0, 0, detectorCnv.width, detectorCnv.height)
 
       if (className) {
         faceapi.drawText(
@@ -160,9 +160,7 @@ const app = new Vue({
     getBestMatch (queryDescriptor) {
       /*
         Args:
-          descriptorsByClass: array of objs with className and face
-                              embeddings
-             queryDescriptor: face embeddings of incoming detection
+          queryDescriptor: face embeddings of incoming detection
         Returns:
           Object {className, distance}
       */
@@ -181,22 +179,28 @@ const app = new Vue({
         )
         .reduce((best, curr) => best.distance < curr.distance ? best : curr)
     },
-    classifyFace: async function (loop = false) {
+    classifyFace: async function () {
       const {db, videoEl, detectorCnv, detectorCtx,
-             maxFaceDist, unknownPrefix, minConfidence} = constants
+             maxFaceDist, unknownPrefix, minConfidence,
+             modes} = constants
 
       const faceDescriptions = await this.forwardPass()
+
+      console.log('classifying')
+      // boolean flag needed for single shot mode
+      let detected = false
 
       if (faceDescriptions) {
         faceDescriptions.forEach(({detection, landmarks, descriptor}) => {
           const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
           const bestMatch = this.getBestMatch(descriptor)
-          console.log(bestMatch)
           let className, color
 
           if (detection.score < minConfidence) {
             return
           }
+
+          detected = true
 
           if (bestMatch && bestMatch.distance < maxFaceDist) {
             className = `${bestMatch.className} (${bestMatch.distance})`
@@ -210,28 +214,53 @@ const app = new Vue({
             // If class is unknown, assign it a number and
             // save the embeddings to the database
             className = unknownPrefix + db.getAutoIncrement()
-            color = 'red'
-            detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
-                                  0, 0, detectorCnv.width, detectorCnv.height)
-
             db.addClass(className, [descriptor], detectorCnv.toDataURL())
+            color = 'red'
+            // detectorCtx.drawImage(videoEl, x, y, boxHeight, boxWidth,
+            //                       0, 0, detectorCnv.width, detectorCnv.height)
           }
 
           this.drawDetection(detection, landmarks, color, className)
         })
       }
 
-      if (loop) {
-        this.classifyFace(true)
-      } else {
-        videoEl.pause()
+      // Three things can happen
+      // * we keep looping detection
+      // * we stop detection
+      // * if we detected at least one face,
+      //   we pause video and show detection box (for slow computers)
+
+      if (this.mode === modes.IDLE) {
+        return
+      } else if (this.mode === modes.LOOP) {
+        this.classifyFace()
+      } else if (this.mode === modes.SINGLE) {
+        if (detected) {
+          videoEl.pause()
+          this.setMode(modes.IDLE)
+        } else {
+          this.classifyFace()
+        }
       }
     },
     updateTimeStats (timeInMs) {
       this.forwardTimes = [timeInMs].concat(this.forwardTimes).slice(0, 30)
-      // const avgTimeInMs = this.forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
-      // $('#time').text(`${Math.round(avgTimeInMs)} ms`)
-      // $('#fps').text(`${faceapi.round(1000 / avgTimeInMs)}`)
+    },
+    onDetect: async function (btnMode) {
+      const {modes, videoEl, canvasCtx, canvas} = constants
+      if (videoEl.paused) {
+        videoEl.play()
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+      if (btnMode === 'single') {
+        this.setMode(modes.SINGLE)
+        this.classifyFace()
+      } else if (btnMode === 'realtime') {
+        this.setMode(modes.LOOP)
+        this.classifyFace()
+      } else if (btnMode === 'stop') {
+        this.setMode(modes.IDLE)
+      }
     }
   }
 })
@@ -293,7 +322,7 @@ Vue.component('training-app', {
         this.setMode(modes.IDLE)
         // reset state
         Object.assign(this.$data, this.$options.data())
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+        // canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
       } else {
         this.train()
       }
