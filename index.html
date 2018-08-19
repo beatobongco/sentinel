@@ -19,6 +19,7 @@
   <div class="title">
     <h1>Sentinel</h1>
     <p>Proof of concept quick facial recognition system completely in the browser. Don't worry, none of your data is stored (it's in your browser's localstorage).</p>
+    <p>Requires webcam. Please wait while it loads (8mb). After the initial load it should be pretty darn fast!</p>
   </div>
   <div class="canvas-container">
     <div class="camera">
@@ -31,7 +32,7 @@
     </div>
   </div>
   <div id="app">
-    <div class="stats-container">
+    <div v-cloak class="stats-container">
       <div class="box">
         Status: <strong>{{status}}</strong>
       </div>
@@ -42,7 +43,7 @@
         Inference time: {{avgInferenceTime}}
       </div>
     </div>
-    <div class="tabs">
+    <div v-cloak class="tabs">
       <button
         v-for="b in getTabs()"
         :class="{active: b.id === tab}"
@@ -86,7 +87,7 @@
         class="info"
         v-if="tab === 'info'">
         <h3 id="info">Instructions</h3>
-        <p>First, allow the system to use your webcam. Then wait for your browser to load the weights (all in all around 8MB).</p>
+        <p>First, allow the system to use your webcam. Then wait for the system to load. You should see yourself on your webcam when fully loaded!</p>
 
         <p>This system uses your webcam to detect faces. The data is stored in your browser and is not accessible to me or other third parties. So go bonkers with this demo!</p>
 
@@ -102,7 +103,7 @@
 
         <h3>Detection tab</h3>
 
-        <p>Detection means identifying faces and checking if they are similar to the faces stored in its memory. If an unknown face is detected, it will save that face to the database which you can rename later on.</p>
+        <p>Detection means identifying faces and checking if they are similar to the faces stored in its memory. The smaller the number beside the name, the close the match. If an unknown face is detected, it will save that face to the database which you can rename later on.</p>
 
         <p>To identify between known and unknown classes, the system uses simple <a href="https://en.wikipedia.org/wiki/Euclidean_distance">Euclidean distance</a> between face embeddings.</p>
 

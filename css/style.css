@@ -94,7 +94,7 @@ video {
   border-radius: 2px;
   background-color: #3498db;
   color: #fff;
-  padding: 5px;
+  padding: 5px 10px;
   border: none;
   min-width: 80px;
 }
@@ -110,3 +110,4 @@ video {
 .tab-contents button:hover {
   opacity: .9;
 }
+[v-cloak] { display: none; }
