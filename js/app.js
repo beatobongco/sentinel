@@ -34,7 +34,7 @@ const constants = {
   },
   modelsPath: 'models/',
   mtcnnParams: {
-    minFaceSize: 200
+    minFaceSize: 100
   }
 }
 
@@ -226,7 +226,7 @@ const app = new Vue({
             color = 'red'
           }
 
-          this.drawDetection(detection, landmarks, color, className)
+          requestAnimationFrame(() => { this.drawDetection(detection, landmarks, color, className) })
         })
       }
 
@@ -328,7 +328,8 @@ Vue.component('training-app', {
             console.log('ACCEPT. Image distance:', meanDistance)
           }
 
-          this.drawDetection(detection, landmarks, 'blue', this.trainClassName)
+          requestAnimationFrame(() => {
+            this.drawDetection(detection, landmarks, 'blue', this.trainClassName) })
 
           this.embeddings.push(descriptor)
           // We save the first image taken as the display picture
