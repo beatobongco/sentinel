@@ -40,57 +40,64 @@
     </div>
   </div>
   <div id="app">
-    <div v-cloak class="stats-container">
-      <div class="box">
-        Status:
-        <strong
-          :class="{status: true, blink: mode === 'LOADING'}">{{status}}</strong>
-      </div>
-      <div class="box">
-        Estimated framerate: {{fps}}
-      </div>
-      <div class="box">
-        Inference time: {{avgInferenceTime}}
-      </div>
-    </div>
-    <div v-cloak class="tabs">
-      <button
-        v-for="b in getTabs()"
-        :class="{active: b.id === tab}"
-        @click.prevent="switchTab(b.id)"
-        :disabled="mode !== 'IDLE'"
-      >{{b.text}}</button>
-    </div>
-    <div class="tab-contents">
-      <training-app
-        v-if="tab === 'train'"
-        :draw-detection="drawDetection"
-        :forward-pass="forwardPass"
-        :mode="mode"
-        :set-mode="setMode"
-        :compute-mean-distance="computeMeanDistance"></training-app>
-      <div
-        class="detect-tab"
-        v-if="tab === 'detect'">
-        <h3 id="detect">Detect faces</h3>
-        <p>Current network: MTCNN</p>
-        <div>
-          <button class="neutral" :disabled="mode !== 'IDLE'"
-            @click="onDetect('single')">Single shot</button>
-          <button class="primary" :disabled="mode !== 'IDLE'"
-            @click="onDetect('realtime')">Real-time</button>
-          <button class="negative" @click="onDetect('stop')">Stop</button>
+    <div v-cloak>
+      <h3 v-if="mode === 'LOADING'">
+        Status: <strong class="status blink">{{status}}</strong>
+      </h3>
+      <div class="stats-container" v-else>
+        <div class="box">
+          Status:
+          <strong
+            :class="{status: true, blink: mode === 'LOOP'}">{{status}}</strong>
+        </div>
+        <div class="box">
+          Estimated framerate: {{fps}}
+        </div>
+        <div class="box">
+          Inference time: {{avgInferenceTime}}
         </div>
       </div>
-      <div
-        class="classlist-tab"
-        v-if="tab === 'classlist'">
-        <h3 id="edit">Edit/Delete classes</h3>
-        <div class="face-class-container">
-          <face-class
-            v-for="embs in sharedState.embeddings"
-            :embs="embs"
-            :key="embs.className"></face-class>
+      <div class="tabs" v-if="mode !== 'LOADING'">
+        <button
+          v-for="b in getTabs()"
+          :class="{active: b.id === tab}"
+          @click.prevent="switchTab(b.id)"
+          :disabled="mode !== 'IDLE'"
+        >{{b.text}}</button>
+      </div>
+    </div>
+    <div class="tab-contents">
+      <div v-cloak>
+        <training-app
+          v-if="tab === 'train'"
+          :draw-detection="drawDetection"
+          :forward-pass="forwardPass"
+          :mode="mode"
+          :set-mode="setMode"
+          :compute-mean-distance="computeMeanDistance"></training-app>
+        <div
+          class="detect-tab"
+          v-if="tab === 'detect'">
+          <h3 id="detect">Detect faces</h3>
+          <p>Current network: MTCNN</p>
+          <div>
+            <button class="neutral" :disabled="mode !== 'IDLE'"
+              @click="onDetect('single')">Single shot</button>
+            <button class="primary" :disabled="mode !== 'IDLE'"
+              @click="onDetect('realtime')">Real-time</button>
+            <button class="negative" @click="onDetect('stop')">Stop</button>
+          </div>
+        </div>
+        <div
+          class="classlist-tab"
+          v-if="tab === 'classlist'">
+          <h3 id="edit">Edit/Delete classes</h3>
+          <div class="face-class-container">
+            <face-class
+              v-for="embs in sharedState.embeddings"
+              :embs="embs"
+              :key="embs.className"></face-class>
+          </div>
         </div>
       </div>
       <div

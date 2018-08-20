@@ -83,7 +83,12 @@ video {
   background-color: #bdc3c7;
   border-bottom: 1px solid #7f8c8d;
 }
+.tabs button:disabled {
+  color: #bdc3c7;
+  background-color: #95a5a6;
+}
 .tabs button.active {
+  color: black;
   border-top: 1px solid #7f8c8d;
   border-bottom: none;
   outline: 0;
@@ -92,7 +97,7 @@ video {
 .tab-contents button {
   cursor: pointer;
   border-radius: 2px;
-  background-color: #7f8c8d;
+  background-color: #00a8ff;
   color: #fff;
   padding: 5px 10px;
   border: none;
@@ -108,7 +113,8 @@ video {
   background-color: #3498db;
 }
 .tab-contents button:disabled {
-  background-color: #7f8c8d !important;
+  color: #bdc3c7;
+  background-color: #95a5a6;
 }
 .tab-contents button:hover {
   opacity: .9;
