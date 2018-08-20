@@ -39,8 +39,10 @@ const constants = {
 }
 
 function clearCanvas () {
-  const {canvas, canvasCtx} = constants
-  canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+  requestAnimationFrame(() => {
+    const {canvas, canvasCtx} = constants
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height)
+  })
 }
 
 const app = new Vue({
