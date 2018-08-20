@@ -42,7 +42,9 @@
   <div id="app">
     <div v-cloak class="stats-container">
       <div class="box">
-        Status: <strong>{{status}}</strong>
+        Status:
+        <strong
+          :class="{status: true, blink: mode === 'LOADING'}">{{status}}</strong>
       </div>
       <div class="box">
         Estimated framerate: {{fps}}

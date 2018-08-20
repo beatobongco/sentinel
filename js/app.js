@@ -226,7 +226,8 @@ const app = new Vue({
             color = 'red'
           }
 
-          requestAnimationFrame(() => { this.drawDetection(detection, landmarks, color, className) })
+          requestAnimationFrame(() => {
+            this.drawDetection(detection, landmarks, color, className) })
         })
       }
 
