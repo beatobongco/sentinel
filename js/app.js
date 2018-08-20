@@ -55,7 +55,8 @@ const app = new Vue({
   mounted: async function () {
     const {faceapi, db, modes, modelsPath, videoEl} = constants
     this.status = 'Loading model weights...'
-    await faceapi.loadMtcnnModel(modelsPath)
+    // await faceapi.loadMtcnnModel(modelsPath)
+    await faceapi.loadTinyYolov2Model(modelsPath)
     await faceapi.loadFaceRecognitionModel(modelsPath)
     this.status = 'Initializing database...'
     await db.init()
@@ -124,14 +125,20 @@ const app = new Vue({
       // https://github.com/justadudewhohacks/face-api.js/issues/66
       // If we dont have this block, inferencing of training will stop
       try {
-        const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
+        //const fullFaceDescriptions = await faceapi.allFacesMtcnn(videoEl, mtcnnParams)
+        const fullFaceDescriptions = await faceapi.tinyYolov2(videoEl, {
+          scoreThreshold: 0.5,
+          // any number or one of the predifened sizes:
+          // 'xs' (224 x 224) | 'sm' (320 x 320) | 'md' (416 x 416) | 'lg' (608 x 608)
+          inputSize: 'md'
+        })
         this.updateTimeStats(Date.now() - ts)
         return fullFaceDescriptions
       } catch (err) {
         console.log(err)
       }
     },
-    drawDetection (detection, landmarks, color, className) {
+    drawDetection (detection, color, className) {
       // TODO: Since we refactored, we are able to customize color better
       const {faceapi, videoEl, canvas, canvasCtx,
              detectorCnv, detectorCtx} = constants
@@ -198,14 +205,21 @@ const app = new Vue({
       let detected = false
 
       if (faceDescriptions) {
-        faceDescriptions.forEach(({detection, landmarks, descriptor}) => {
+        // faceDescriptions.forEach(({detection, landmarks, descriptor}) => {
+          // if (detection.score < minConfidence) {
+          //   return
+          // }
+        const tempcnv = document.createElement('canvas')
+        faceDescriptions.forEach(async detection => {
+          const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
+          tempcnv.width = boxWidth
+          tempcnv.height = boxHeight
+          tempcnv.getContext('2d').drawImage(videoEl, x, y, boxWidth, boxHeight,
+                                0, 0, boxWidth, boxHeight)
+          const descriptor = await faceapi.computeFaceDescriptor(tempcnv)
           const bestMatch = this.getBestMatch(descriptor)
+
           let className, color
-
-          if (detection.score < minConfidence) {
-            return
-          }
-
           detected = true
 
           if (bestMatch && bestMatch.distance < maxFaceDist) {
@@ -219,15 +233,12 @@ const app = new Vue({
             // If class is unknown, assign it a number and
             // save the embeddings to the database
             className = unknownPrefix + db.getAutoIncrement()
-            const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
-            detectorCtx.drawImage(videoEl, x, y, boxWidth, boxHeight,
-                                  0, 0, detectorCnv.width, detectorCnv.height)
             db.addClass(className, [descriptor], detectorCnv.toDataURL())
             color = 'red'
           }
 
           requestAnimationFrame(() => {
-            this.drawDetection(detection, landmarks, color, className) })
+            this.drawDetection(detection, color, className) })
         })
       }
 
@@ -278,6 +289,7 @@ const app = new Vue({
         this.setMode(modes.LOOP)
         this.classifyFace()
       } else if (btnMode === 'stop') {
+        clearCanvas()
         this.setMode(modes.IDLE)
       }
     }
@@ -308,16 +320,24 @@ Vue.component('training-app', {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#Async_methods
     train: async function () {
       // Trains a class
-      const {minConfidence, maxFaceDist, detectorCnv, db, modes} = constants
+      const {videoEl, minConfidence, maxFaceDist, detectorCnv, db, modes} = constants
       this.setMode(modes.LOOP)
 
       const faceDescriptions = await this.forwardPass()
 
       if (faceDescriptions) {
-        faceDescriptions.forEach(({detection, landmarks, descriptor}) => {
-          if (detection.score < minConfidence) {
-            return
-          }
+        // faceDescriptions.forEach(({detection, landmarks, descriptor}) => {
+        //   if (detection.score < minConfidence) {
+        //     return
+        //   }
+        const tempcnv = document.createElement('canvas')
+        faceDescriptions.forEach(async detection => {
+          const {x, y, height: boxHeight, width: boxWidth} = detection.getBox()
+          tempcnv.width = boxWidth
+          tempcnv.height = boxHeight
+          tempcnv.getContext('2d').drawImage(videoEl, x, y, boxWidth, boxHeight,
+                                0, 0, boxWidth, boxHeight)
+          const descriptor = await faceapi.computeFaceDescriptor(tempcnv)
 
           if (this.embeddings.length > 1) {
             const meanDistance = this.computeMeanDistance(this.embeddings, descriptor)
@@ -330,7 +350,7 @@ Vue.component('training-app', {
           }
 
           requestAnimationFrame(() => {
-            this.drawDetection(detection, landmarks, 'blue', this.trainClassName) })
+            this.drawDetection(detection, 'blue', this.trainClassName) })
 
           this.embeddings.push(descriptor)
           // We save the first image taken as the display picture
